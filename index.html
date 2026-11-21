@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Mandelbulb Battle Tops</title>
+<meta name="theme-color" content="#04050a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<!-- ローディング -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loadMsg">起動中…</div>
+</div>
+
+<!-- タイトル / 名前入力 -->
+<section id="title" class="screen">
+  <div class="panel">
+    <div class="logo">
+      <div class="l1">MANDELBULB</div>
+      <div class="l2">BATTLE&nbsp;TOPS</div>
+      <div class="jp">フラクタル・コマ・バトル</div>
+    </div>
+    <div id="modeSel" class="modeSel" role="tablist">
+      <button data-mode="axis" class="on">軸あり<small>競技コマ</small></button>
+      <button data-mode="free">軸なし<small>形状×物理</small></button>
+    </div>
+    <div id="modeHint" class="modeHint"></div>
+    <label for="nameInput" class="lbl">あなたの名前</label>
+    <input id="nameInput" maxlength="24" placeholder="名前を入力…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <div class="hint">名前から、世界にひとつのマンデルバルブ・コマが生まれます。<br>同じ名前なら、いつでも同じコマ。</div>
+    <div id="pCard" class="card"></div>
+    <button id="btnFight" class="btn primary" disabled>このコマでバトル ▶</button>
+  </div>
+  <div class="foot">ドラッグ：回転　ホイール：ズーム　P：フォトモード</div>
+  <div class="foot touchOnly">ドラッグ：回転　ピンチ：ズーム</div>
+</section>
+
+<!-- VS -->
+<section id="vs" class="screen">
+  <div class="vsRow">
+    <div id="vsP" class="card big left"></div>
+    <div class="vsMark">VS</div>
+    <div id="vsC" class="card big right"></div>
+  </div>
+  <div class="vsBtns">
+    <button id="btnBack" class="btn">◀ 名前を変える</button>
+    <button id="btnReroll" class="btn">相手を変える ⟳</button>
+    <button id="btnStart" class="btn primary">バトル開始 ▶</button>
+  </div>
+</section>
+
+<!-- バトルHUD -->
+<section id="hud" class="screen">
+  <div class="hudTop">
+    <div id="hudP" class="hudSide">
+      <div class="hn"><span id="hudPName"></span><span class="pips" id="pipsP"></span></div>
+      <div class="hc" id="hudPCode"></div>
+      <div class="bar spin"><div id="hudPSpin" class="fill"></div><i id="critP" class="crit"></i><span id="hudPRpm" class="rpm"></span></div>
+      <div class="bar sp"><div id="hudPSp" class="fill"></div><span class="spl">OVERDRIVE</span></div>
+    </div>
+    <div class="hudCenter"><div id="roundNo">ROUND 1</div></div>
+    <div id="hudC" class="hudSide right">
+      <div class="hn"><span class="pips" id="pipsC"></span><span id="hudCName"></span></div>
+      <div class="hc" id="hudCCode"></div>
+      <div class="bar spin"><div id="hudCSpin" class="fill"></div><i id="critC" class="crit"></i><span id="hudCRpm" class="rpm"></span></div>
+      <div class="bar sp"><div id="hudCSp" class="fill"></div><span class="spl">OVERDRIVE</span></div>
+    </div>
+  </div>
+  <div id="bigMsg"></div>
+  <div id="launchUI">
+    <div class="lt"><span class="noTouch">SPACE / クリックでシュート！</span><span class="touchOnly">タップでシュート！</span></div>
+    <div class="gauge"><div class="zone"></div><div id="needle"></div></div>
+    <div id="lockText"></div>
+  </div>
+  <div class="ctrlHint">WASD / 矢印：移動　SPACE：ダッシュ<span class="odOnly">　E / SHIFT：バルブ・オーバードライブ</span>　ESC：タイトル</div>
+  <div class="touchHint">左側をドラッグ：移動　右側タップ / DASH：ダッシュ</div>
+  <button id="btnQuit" class="btn tiny quit">✕</button>
+  <div id="joy"><div id="joyKnob"></div></div>
+  <div class="touchBtns">
+    <button id="spBtn" class="tbtn sp">OD</button>
+    <button id="dashBtn" class="tbtn">DASH</button>
+  </div>
+</section>
+
+<!-- リザルト -->
+<section id="result" class="screen">
+  <div class="resBox">
+    <div id="resTitle">VICTORY</div>
+    <div id="resSub"></div>
+    <div id="resRec"></div>
+    <div class="resBtns">
+      <button id="btnRematch" class="btn primary">再戦</button>
+      <button id="btnNewCpu" class="btn">別の相手</button>
+      <button id="btnRename" class="btn">名前を変える</button>
+    </div>
+  </div>
+</section>
+
+<!-- 設定 -->
+<div id="settings">
+  <span id="photoBadge">PHOTO MODE · 静止して高品質に収束中</span>
+  <span id="resBadge"></span>
+  <select id="qualitySel" title="画質">
+    <option value="auto">画質：自動</option>
+    <option value="low">画質：低</option>
+    <option value="medium">画質：中</option>
+    <option value="high">画質：高</option>
+    <option value="ultra">画質：ウルトラ</option>
+  </select>
+  <button id="photoBtn" class="btn tiny touchOnly" title="フォトモード">📷</button>
+  <button id="fsBtn" class="btn tiny touchOnly" title="全画面">⛶</button>
+  <button id="soundBtn" class="btn tiny">♪ ON</button>
+</div>
+
+<script src="js/topgen.js"></script>
+<script src="js/shapephys.js"></script>
+<script src="js/shaders.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
