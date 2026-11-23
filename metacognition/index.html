@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>メタ認知診断</title>
-<meta name="description" content="人間と自分を科学的に理解できているか？16問のクイズと「自信の見積もり」から、あなたのメタ認知タイプとメタ認知偏差値を診断します。">
+<meta name="description" content="日常のよくある場面で、あなたならどう思う？どうする？16の場面から、あなたのメタ認知タイプとメタ認知偏差値を診断します。知識は必要ありません。">
 <meta property="og:title" content="メタ認知診断">
-<meta property="og:description" content="16問で分かる、あなたのメタ認知タイプとメタ認知偏差値。">
+<meta property="og:description" content="日常の16場面で分かる、あなたのメタ認知タイプとメタ認知偏差値。">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <style>
@@ -53,7 +53,6 @@ h1{font-size:clamp(30px,8vw,44px);line-height:1.2;margin:8px 0 12px;letter-spaci
 .btn.x{background:#000;color:#fff}
 .btn.line{background:#06c755;color:#fff}
 .btn.block{width:100%}
-.btn[disabled]{opacity:.4;pointer-events:none}
 .points{list-style:none;padding:0;margin:20px 0}
 .points li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px dashed var(--line)}
 .points li:first-child{border-top:0}
@@ -62,7 +61,8 @@ h1{font-size:clamp(30px,8vw,44px);line-height:1.2;margin:8px 0 12px;letter-spaci
 .progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
 .qhead{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
 .tag{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--chip);color:var(--accent);font-weight:700;font-size:12px}
-.q{font-size:19px;font-weight:700;margin:6px 0 16px;line-height:1.6}
+.scene{font-size:13px;font-weight:700;color:var(--accent);margin-top:4px}
+.q{font-size:19px;font-weight:700;margin:4px 0 16px;line-height:1.6}
 .opts{display:grid;gap:10px}
 .opt{
   text-align:left;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);
@@ -70,21 +70,10 @@ h1{font-size:clamp(30px,8vw,44px);line-height:1.2;margin:8px 0 12px;letter-spaci
 }
 .opt:hover{border-color:var(--accent)}
 .opt.sel{border-color:var(--accent);background:var(--chip)}
-.opt.correct{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--card))}
-.opt.wrong{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 12%,var(--card))}
-.opt[disabled]{cursor:default}
-.conf{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);display:none}
-.conf.show{display:block;animation:fade .25s}
-.conf p{margin:0 0 10px;font-weight:700;font-size:15px}
-.confs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.cbtn{padding:10px 4px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--text);font-family:inherit;cursor:pointer;font-size:13px;line-height:1.3}
-.cbtn b{display:block;font-size:17px;color:var(--accent)}
-.cbtn:hover{border-color:var(--accent)}
-.fb{display:none;margin-top:18px;padding:16px;border-radius:14px;background:var(--chip);font-size:14px}
-.fb.show{display:block;animation:fade .25s}
-.fb .verdict{font-weight:800;font-size:16px;margin-bottom:4px}
-.fb .verdict.ok{color:var(--ok)} .fb .verdict.ng{color:var(--ng)}
+.back{background:none;border:0;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-top:14px;padding:4px 0}
+.back[disabled]{visibility:hidden}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.anim{animation:fade .25s}
 .hidden{display:none!important}
 .result-top{text-align:center}
 .typebadge{font-size:56px;line-height:1;margin:8px 0}
@@ -103,9 +92,10 @@ h2{font-size:18px;margin:28px 0 10px}
 .share{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .share .full{grid-column:1/-1}
 .review{list-style:none;padding:0;margin:0;font-size:14px}
-.review li{padding:10px 0;border-top:1px solid var(--line);display:flex;gap:10px}
-.review .mk{flex:0 0 22px;font-weight:900}
-.review .mk.ok{color:var(--ok)} .review .mk.ng{color:var(--ng)}
+.review li{padding:12px 0;border-top:1px solid var(--line)}
+.review .you{margin:4px 0}
+.review .hint{color:var(--muted);font-size:13px}
+.dots{letter-spacing:2px;color:var(--accent)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
@@ -118,35 +108,33 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
   <section id="start" class="card">
     <div class="eyebrow">METACOGNITION TEST</div>
     <h1><span class="grad">メタ認知診断</span></h1>
-    <p>あなたは<b>人間と自分を科学的に理解</b>できていますか？<br>社会や感情がどう働くかを知っているか、そして<b>「自分がどれだけ分かっているか」を正しく見積もれるか</b>を測ります。</p>
+    <p>日常のよくある場面で、<b>あなたならどう思う？どうする？</b><br>正解も知識もいりません。直感で、いちばん自分に近いものを選んでください。</p>
     <ul class="points">
-      <li><span class="num">1</span><div><b>16問のクイズ</b><br><span class="muted small">認知・感情・社会・自己の4分野。心理学・認知科学の研究がベース。</span></div></li>
-      <li><span class="num">2</span><div><b>毎問「自信度」を答える</b><br><span class="muted small">正解率と自信のズレ＝メタ認知の核心。当てずっぽうなら正直に。</span></div></li>
-      <li><span class="num">3</span><div><b>タイプと偏差値が出る</b><br><span class="muted small">結果はX・LINE・画像で共有できます。所要時間は約4分。</span></div></li>
+      <li><span class="num">1</span><div><b>まず、自分を予想する</b><br><span class="muted small">「自分をどれくらい客観視できているか」を先に自己評価します。</span></div></li>
+      <li><span class="num">2</span><div><b>16の日常シーンに答える</b><br><span class="muted small">SNS・人間関係・仕事・感情のゆれ…。「こうすべき」ではなく「実際の自分」で。</span></div></li>
+      <li><span class="num">3</span><div><b>タイプと偏差値が出る</b><br><span class="muted small">自分の予想とのズレも判定。X・LINE・画像で共有できます。約3分。</span></div></li>
     </ul>
     <button class="btn block" id="startBtn">診断をはじめる</button>
   </section>
 
+  <!-- SELF PREDICTION -->
+  <section id="predict" class="card hidden">
+    <div class="eyebrow">STEP 1 ／ 自己予想</div>
+    <div class="q" style="margin-top:10px">あなたは、自分の考え方や感情のクセを、どのくらい客観的に見られていると思いますか？</div>
+    <div class="opts" id="predOpts"></div>
+    <p class="muted small" style="margin-bottom:0">※ この予想と実際の結果のズレも、メタ認知の大事な指標です。</p>
+  </section>
+
   <!-- QUIZ -->
   <section id="quiz" class="card hidden">
-    <div class="qhead"><span id="qcount">Q1 / 16</span><span class="tag" id="qcat">認知</span></div>
+    <div class="qhead"><span id="qcount">Q1 / 16</span><span class="tag" id="qcat"></span></div>
     <div class="progress"><i id="bar" style="width:0%"></i></div>
-    <div class="q" id="qtext"></div>
-    <div class="opts" id="opts"></div>
-    <div class="conf" id="conf">
-      <p>この答え、どのくらい自信がある？</p>
-      <div class="confs">
-        <button class="cbtn" data-c="0.25"><b>25%</b>勘</button>
-        <button class="cbtn" data-c="0.5"><b>50%</b>半々</button>
-        <button class="cbtn" data-c="0.75"><b>75%</b>たぶん</button>
-        <button class="cbtn" data-c="1"><b>100%</b>確信</button>
-      </div>
+    <div id="qbody">
+      <div class="scene" id="qscene"></div>
+      <div class="q" id="qtext"></div>
+      <div class="opts" id="opts"></div>
     </div>
-    <div class="fb" id="fb">
-      <div class="verdict" id="verdict"></div>
-      <div id="ex"></div>
-      <button class="btn block" id="nextBtn" style="margin-top:14px">次へ</button>
-    </div>
+    <button class="back" id="backBtn">← ひとつ戻る</button>
   </section>
 
   <!-- RESULT -->
@@ -159,9 +147,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
       <div class="dev"><span class="label">メタ認知偏差値</span><span class="val grad" id="rDev"></span></div>
       <div class="muted small" id="rPct"></div>
       <div class="stats">
-        <div class="stat"><b id="rAcc"></b><span>正答率</span></div>
-        <div class="stat"><b id="rCal"></b><span>見積もり精度</span></div>
-        <div class="stat"><b id="rBias"></b><span>自信のズレ</span></div>
+        <div class="stat"><b id="rTotal"></b><span>客観視スコア</span></div>
+        <div class="stat"><b id="rPred"></b><span>自己予想</span></div>
+        <div class="stat"><b id="rGap"></b><span>予想とのズレ</span></div>
       </div>
       <svg class="radar" id="radar" viewBox="0 0 340 300" role="img" aria-label="分野別スコアのレーダーチャート"></svg>
     </div>
@@ -169,8 +157,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
     <div class="card" style="margin-top:16px">
       <h2 style="margin-top:0">このタイプの特徴</h2>
       <div class="box" id="rDesc"></div>
-      <h2>自信の見積もり</h2>
+      <h2>自己予想とのズレ</h2>
       <div class="box" id="rCalDesc"></div>
+      <h2>いちばんの強み・伸びしろ</h2>
+      <div class="box" id="rStrong"></div>
       <h2>伸ばすヒント</h2>
       <div class="box" id="rTip"></div>
 
@@ -184,7 +174,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
       </div>
       <p class="muted small" style="margin-bottom:0">画像を保存して投稿に添付すると、タイムラインで目立ちます。</p>
 
-      <h2>回答の振り返り</h2>
+      <h2>あなたの選択の振り返り</h2>
+      <p class="muted small" style="margin-top:0">点の数はその選択の「客観視の度合い」（●●● が最大）。どれが良い・悪いではなく、心のクセを知るヒントです。</p>
       <ul class="review" id="review"></ul>
 
       <button class="btn sub block" id="retryBtn" style="margin-top:20px">もう一度診断する</button>
@@ -198,224 +189,228 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:28px}
 
 <script>
 const CATS = {
-  cog:  {name:"認知の科学", short:"認知"},
-  emo:  {name:"感情の科学", short:"感情"},
-  soc:  {name:"社会の科学", short:"社会"},
-  self: {name:"自己の科学", short:"自己"},
+  cog:  {name:"思考の客観視", short:"思考"},
+  emo:  {name:"感情の理解",   short:"感情"},
+  soc:  {name:"対人・集団の理解", short:"対人"},
+  self: {name:"自己理解",     short:"自己"},
 };
-// a[0] is the correct answer; options are shuffled at runtime
-const QUESTIONS = [
-  // 認知
-  {c:"cog", q:"自分の考えを支持する情報ばかりを集め、反対の情報を軽視してしまう傾向を何という？",
-   a:["確証バイアス","アンカリング効果","生存者バイアス","ハロー効果"],
-   ex:"確証バイアスは最も強力な認知バイアスの一つ。「自分が間違っているとしたら、どんな証拠があるはず？」と問うのが対策です。"},
-  {c:"cog", q:"目撃証言の研究（ロフタスら）で示された、記憶の性質として正しいものは？",
-   a:["事後に受けた質問の言葉づかいで、記憶の内容が変わりうる","強い感情を伴う記憶は、ほぼ正確に保たれる","記憶はビデオのように、そのまま脳に保存される","催眠を使えば、正確な記憶を取り戻せる"],
-   ex:"「激突した」と聞かれた人は「ぶつかった」と聞かれた人より速度を高く見積もり、ないはずのガラス片を「見た」と答えやすくなりました。記憶は思い出すたびに再構成されます。"},
-  {c:"cog", q:"疲れているときや急いでいるとき、人の判断は一般にどうなりやすい？",
-   a:["直感やヒューリスティック（経験則）に頼りやすくなる","じっくり論理的に考えるようになる","バイアスの影響を受けにくくなる","判断の質は状態に左右されない"],
-   ex:"熟慮的な思考（システム2）は認知資源を使います。資源が足りないと、速く自動的な思考（システム1）に任せがちになります。大事な判断は余裕のあるときに。"},
-  {c:"cog", q:"作業の所要時間を、過去の経験があるにもかかわらず楽観的に短く見積もってしまう傾向は？",
-   a:["計画錯誤","正常性バイアス","サンクコスト効果","バンドワゴン効果"],
-   ex:"計画錯誤（planning fallacy）は、自分の計画の「理想の流れ」だけを想像するために起きます。似た過去の案件に実際どれくらいかかったかを参照するのが有効です。"},
+// o: [text, points 0-3]. Options are shuffled at runtime.
+const SCENES = [
+  // 思考
+  {c:"cog", s:"SNSで", q:"自分が支持している意見を、強く裏づける記事が流れてきた。",
+   o:[["「自分に都合がよすぎるかも」と思い、反対側の意見も探してみる",3],["出典だけ確認して、信頼できそうなら納得する",2],["「やっぱりね」と思ってそのまま読み終える",1],["すぐにシェアして、周りにも広める",0]],
+   h:"人は自分の考えに合う情報ばかり集めがち（確証バイアス）。「自分が間違っているとしたら？」と考えられるのはメタ認知の力です。"},
+  {c:"cog", s:"仕事・課題で", q:"締め切りまで2週間。ざっと見て「これなら3日で終わりそう」と感じた。",
+   o:[["前に似た作業が実際どれくらいかかったかを思い出し、見積もりを直す",3],["念のため、1〜2日くらい余裕をみておく",2],["3日あれば大丈夫なので、しばらく他のことをする",1],["見積もりは考えず、気が向いたときに始める",0]],
+   h:"人は所要時間を楽観的に見積もりがち（計画錯誤）。「理想の流れ」ではなく過去の実績を見るのが有効です。"},
+  {c:"cog", s:"夜遅くに", q:"へとへとに疲れた夜。大きな買い物をするか、大事な連絡に返信するか迷っている。",
+   o:[["「今の自分の判断は当てにならない」と思い、翌朝に回す",3],["カートや下書きに入れておき、少し時間をおく",2],["考えるのも面倒なので、直感で決めてしまう",1],["疲れているときのほうが本音が出るので、今決める",0]],
+   h:"疲れていると、じっくり考える思考が働きにくくなります。自分のコンディションを判断材料に入れられるかがポイント。"},
+  {c:"cog", s:"話し合いで", q:"議論の途中で、自分の主張に穴があることに気づいてしまった。",
+   o:[["「そこは自分が間違っていたかも」と認めて、考えを修正する",3],["その場は黙っておき、あとで一人で考え直す",2],["話題を少しずらして、その点には触れないようにする",1],["気づかなかったことにして、さらに強く主張する",0]],
+   h:"自分の考えの誤りに気づき、更新できること。これが思考のメタ認知の中心です。"},
   // 感情
-  {c:"emo", q:"不安やモヤモヤを「不安だ」「悔しい」と言葉にする（感情のラベリング）と、一般にどうなる？",
-   a:["感情の強さが和らぎやすい","感情がかえって増幅する","何も変わらない","その感情を忘れてしまう"],
-   ex:"感情に名前をつけると扁桃体の反応が弱まるという研究があります（affect labeling）。日記やジャーナリングが効く理由の一つです。"},
-  {c:"emo", q:"揺れる吊り橋の上で出会った異性に惹かれやすい、という有名な実験が示唆するのは？",
-   a:["身体のドキドキの原因を、別のものと取り違えることがある","恐怖を感じると人は他人を避ける","恋愛感情は理性だけで生まれる","高い場所では判断力が向上する"],
-   ex:"情動の誤帰属。感情は「身体の興奮」と「その解釈」から成り立つとする考え方（二要因理論）とつながります。"},
-  {c:"emo", q:"昇進や失恋など大きな出来事のあと、自分の気持ちがどうなるかについて、人はどう予測しがち？",
-   a:["喜びや悲しみの強さ・続く期間を大きく見積もりすぎる","感情の変化を小さく見積もりすぎる","ほぼ正確に予測できる","良い出来事だけ過小評価する"],
-   ex:"インパクト・バイアス。人には心の「免疫システム」があり、良くも悪くも想像より早く元の状態に戻りやすいのです。"},
-  {c:"emo", q:"怒ったときにクッションを叩くなどして「発散」すると、研究ではどうなることが多い？",
-   a:["怒りや攻撃性はむしろ持続・増加しやすい","怒りがすっきり消える","将来怒りにくくなる","怒りが悲しみに変わる"],
-   ex:"「カタルシス仮説」は実験では支持されていません（Bushman, 2002 など）。深呼吸や時間を置く、状況の捉え直しのほうが効果的です。"},
-  // 社会
-  {c:"soc", q:"緊急事態で、周囲に人が多いほど一人ひとりが助けに入りにくくなる現象は？",
-   a:["傍観者効果","単純接触効果","ピグマリオン効果","返報性の原理"],
-   ex:"責任の分散や「誰も動かない＝大したことではない」という推測が原因。助けを求めるときは「そこの青い服の方、救急車を呼んでください」と個人を指名するのが有効です。"},
-  {c:"soc", q:"他人の行動の原因を、状況よりも「その人の性格や能力」に求めすぎる傾向を何という？",
-   a:["基本的な帰属の誤り","自己奉仕バイアス","内集団バイアス","フレーミング効果"],
-   ex:"遅刻した同僚を「だらしない人」と決めつけがちですが、電車の遅延かもしれません。行動の背景にある状況の力は過小評価されやすいのです。"},
-  {c:"soc", q:"アッシュの同調実験（明らかに長さの違う線を比べる課題）の結果として正しいものは？",
-   a:["明らかな誤答でも、多数派に合わせる回答がかなりの割合で見られた","ほぼ全員が多数派に流されず正答した","参加者は常に100%多数派に同調した","同調は子どもにしか見られなかった"],
-   ex:"サクラが全員同じ誤答をすると、参加者の約4分の3が少なくとも一度は同調しました。ただし味方が一人いるだけで同調は大きく減ります。"},
-  {c:"soc", q:"人が集団で話し合うと、もともとの意見の傾向がより極端な方向に強まることがある。この現象は？",
-   a:["集団極性化","社会的手抜き","多元的無知","ステレオタイプ脅威"],
-   ex:"似た意見の人同士で話すと、賛同の声と新たな論拠が増え、意見が先鋭化します。SNSのエコーチェンバーとも関係が深い現象です。"},
+  {c:"emo", s:"友人とのLINEで", q:"送ったメッセージに、半日たっても返信がない。",
+   o:[["「自分、不安になってるな」と気づきつつ、相手にも事情があるだろうと考える",3],["気にはなるけど、他のことをして気をまぎらわす",2],["何か気に障ることを言ったかと、やりとりを何度も読み返す",1],["「無視された」と感じて、こちらからも距離を置く",0]],
+   h:"感情に気づくことと、感情に飲み込まれることは別物。気持ちを一歩外から眺められると、解釈の選択肢が増えます。"},
+  {c:"emo", s:"職場・学校で", q:"理不尽なことで注意されて、強い怒りがわいてきた。",
+   o:[["心の中で「今、自分は怒っている」と言葉にし、少し時間をおいてから対応を考える",3],["その場は我慢して、あとで信頼できる人に話を聞いてもらう",2],["家に帰って物に当たったり、大声を出したりして発散する",1],["その場ですぐに言い返す",0]],
+   h:"感情に名前をつけると強さが和らぎやすい（感情のラベリング）。一方「発散」はかえって怒りを長引かせることが研究で分かっています。"},
+  {c:"emo", s:"週末に", q:"ずっと楽しみにしていた予定が、直前でキャンセルになった。",
+   o:[["がっかりしつつも「数日たてば、そこまで気にならないはず」と考える",3],["代わりに何か楽しいことを予定に入れる",2],["その日一日、そのことばかり考えてしまう",1],["「自分はいつもこうだ」と、ほかの嫌なことまで思い出してしまう",0]],
+   h:"人は出来事が気持ちに与える影響の大きさや長さを、実際より大きく予測しがち。心は思ったより早く回復します。"},
+  {c:"emo", s:"なんとなく", q:"理由ははっきりしないけど、朝からずっとイライラしている。",
+   o:[["睡眠不足・空腹・疲れなど、体の状態が原因かもと振り返る",3],["好きな音楽を聴いたりして、気分転換する",2],["周りの言動がいちいち気に障るので、なるべく人を避ける",1],["きっと周りの誰かのせいだと思う",0]],
+   h:"体の状態が気分の原因なのに、それを目の前の人や出来事のせいだと取り違えることがあります（情動の誤帰属）。"},
+  // 対人
+  {c:"soc", s:"待ち合わせで", q:"同僚が約束の時間に20分遅れてきた。最初に頭に浮かぶのは？",
+   o:[["「電車が遅れたのかな、何かあったのかも」と状況を想像する",3],["理由を聞いてから判断しようと思う",2],["「時間にルーズな人だな」と思う",1],["「自分は軽く扱われている」と感じる",0]],
+   h:"他人の行動の原因を、状況よりも性格に求めすぎる傾向（基本的な帰属の誤り）。自分の遅刻なら「電車のせい」と思うのに、です。"},
+  {c:"soc", s:"会議で", q:"全員が賛成している案に、自分だけ小さな懸念を感じている。",
+   o:[["「みんな言わないだけかも」と思い、懸念を一言だけ伝えてみる",3],["会議のあと、話しやすい人にこっそり相談する",2],["自分の考えすぎだろうと思い、黙って賛成する",1],["全員が賛成なら正しいはずなので、気にしないことにする",0]],
+   h:"実は他の人も同じ懸念を抱えているのに、全員が「自分だけ」と思って黙ることがあります（多元的無知）。"},
+  {c:"soc", s:"駅のホームで", q:"人が倒れている。周りには人がたくさんいる。",
+   o:[["「誰かがやるだろう」とみんな思っているはずだ、と考えて自分から声をかける",3],["周りの様子を見て、誰かが動いたら一緒に手伝う",2],["駅員さんがすぐ来るだろうと思い、その場を離れる",1],["急いでいるので、気になりつつも通り過ぎる",0]],
+   h:"周りに人が多いほど、一人ひとりが動きにくくなります（傍観者効果）。この仕組みを知っているだけで行動が変わります。"},
+  {c:"soc", s:"仲間うちで", q:"気の合う仲間との会話で、ある話題についての意見がどんどん過激になってきた。",
+   o:[["「この場の空気で極端になっていないか」と一歩引いて考える",3],["違和感はあるけど、空気を壊さない程度に相づちを打つ",2],["盛り上がっているので、一緒に乗っかる",1],["仲間がみんなそう言うなら、それが正しいと確信する",0]],
+   h:"似た意見の人同士で話すと、意見が極端な方向に強まりやすい（集団極性化）。SNSのエコーチェンバーとも関係します。"},
   // 自己
-  {c:"self", q:"人は自分がなぜその選択をしたのか、その理由をどの程度正確に説明できる？",
-   a:["実際の要因に気づかず、もっともらしい理由を後付けすることがよくある","自分のことなので、ほぼ常に正確に説明できる","理由を説明できるのは専門家だけである","説明はできないが、本人は必ずそれを自覚している"],
-   ex:"ニスベットとウィルソンの研究などで、内観（自分の心をのぞく）には限界があることが示されています。「自分のことは自分が一番分かる」は半分しか正しくありません。"},
-  {c:"self", q:"「他人はバイアスに影響されているけど、自分はそれほどでもない」と考えてしまう傾向は？",
-   a:["バイアスの盲点","後知恵バイアス","楽観性バイアス","自己成就予言"],
-   ex:"バイアスについて詳しい人でもこの盲点からは逃れにくいことが分かっています。だからこそ、自分の判断を他人にチェックしてもらう仕組みが大切です。"},
-  {c:"self", q:"ある分野の能力が低い人ほど、自分の能力を過大評価しやすいという傾向が報告されている。これは？",
-   a:["ダニング＝クルーガー効果","プラシーボ効果","ツァイガルニク効果","バーナム効果"],
-   ex:"スキルが足りないと「何ができていないか」を見抜く力も足りない、という説明がされます。（統計的な解釈には議論もあります）まさにメタ認知の問題です。"},
-  {c:"self", q:"試合や選挙の結果を知ったあとで「最初からそうなると思っていた」と感じてしまう傾向は？",
-   a:["後知恵バイアス","確証バイアス","現状維持バイアス","利用可能性ヒューリスティック"],
-   ex:"後知恵バイアスは、過去の自分の予測を書き換えてしまいます。予測は事前に書き残しておくと、自分の見積もり精度を正しく振り返れます。"},
+  {c:"self", s:"友人に", q:"「なんでそれを選んだの？」と、自分の買ったモノについて聞かれた。",
+   o:[["理由を答えつつ、「本当はなんとなくかも」と自分の説明を疑ってみる",3],["思いつく理由を、正直にそのまま答える",2],["「なんとなく」とだけ答えて、深く考えない",1],["自分のことなので、本当の理由をはっきり説明できる自信がある",0]],
+   h:"人は自分の選択の本当の理由に気づかず、もっともらしい理由を後付けすることがよくあります（内観の限界）。"},
+  {c:"self", s:"評価されて", q:"自分では「よくできた」と思っていた成果物を、人から厳しく評価された。",
+   o:[["悔しいけど「自分の評価が甘かったかも」と、指摘を一つずつ検討する",3],["落ち込むが、時間をおいてから見直してみる",2],["「この人は分かっていない」と思う",1],["二度とその人には見せないと決める",0]],
+   h:"自己評価は甘くなりやすいもの。外からのフィードバックは、自分を知るための貴重なデータです。"},
+  {c:"self", s:"友人を見て", q:"友人が、明らかに偏った思い込みで物事を判断している。",
+   o:[["「自分にも同じような思い込みがあるかも」と自分を振り返る",3],["友人に、やんわり別の見方を伝えてみる",2],["「思い込みが激しい人だな」と思う",1],["自分はそういう思い込みはしないタイプだと思う",0]],
+   h:"他人の偏りには気づけても、自分の偏りには気づきにくい（バイアスの盲点）。他人は自分を映す鏡でもあります。"},
+  {c:"self", s:"結果が出て", q:"スポーツの試合や選挙など、予想していたことの結果が出た。",
+   o:[["前もって予想をメモしておいたので、それと照らし合わせる",3],["当たった予想も外れた予想も、両方思い出そうとする",2],["当たった予想のことがよく印象に残る",1],["「最初からこうなると思っていた」と感じる",0]],
+   h:"結果を知ると「最初から分かっていた」と記憶が書き換わります（後知恵バイアス）。予想は書き残すと自分の精度が分かります。"},
+];
+
+const PRED = [
+  ["ほとんど見られていないと思う",20],["あまり見られていないと思う",40],["人並みには見られていると思う",60],["かなり見られていると思う",80],["ほぼ完璧に見られていると思う",95],
 ];
 
 const TYPES = {
-  sage:   {emoji:"🔮", name:"明鏡止水の賢者", copy:"知っていることも、知らないことも、正確に見えている。",
-           desc:"人間の心の仕組みを幅広く理解しているうえに、自分の理解度まで正確に把握できています。思い込みに流されにくく、周りからは「冷静で頼れる人」と見られがち。",
-           tip:"知識を他人に押しつけず「問い」の形で伝えると、あなたの洞察はもっと周りに届きます。"},
-  humble: {emoji:"🔬", name:"謙虚な科学者", copy:"実力は高いのに、自分を低く見積もるタイプ。",
-           desc:"人間理解の知識はしっかりあるのに、自信を控えめに見積もる傾向があります。慎重さは強みですが、正しい意見を引っ込めてしまうことも。",
-           tip:"「正解した問題の多くで自信を低めにつけていた」事実を思い出して。あなたの直感はもう少し信じてよいレベルです。"},
-  bold:   {emoji:"🚀", name:"勇敢な理論家", copy:"知識は豊富。でも自信はそれ以上に豊富。",
-           desc:"人間や社会についての知識は十分にありますが、間違っている場面でも強い確信を持ちやすい傾向があります。決断力の裏返しでもあります。",
-           tip:"確信度が高いときほど「自分が間違っているとしたら、なぜ？」を1つ考える習慣を。精度が一段上がります。"},
+  sage:   {emoji:"🔮", name:"明鏡止水の賢者", copy:"心の動きも、自分の実力も、正確に見えている。",
+           desc:"どんな場面でも一歩引いて自分の思考や感情を眺め、そのうえで行動を選べるタイプ。しかも自分のその力を正しく把握しています。周りからは「冷静で頼れる人」と見られがち。",
+           tip:"気づいたことを他人に押しつけず「問い」の形で伝えると、あなたの視点は周りにもっと届きます。"},
+  humble: {emoji:"🔬", name:"謙虚な科学者", copy:"実はかなり客観的。なのに自己評価は控えめ。",
+           desc:"実際には自分を客観視する力が高いのに、自分ではそれを低く見積もっています。慎重さは強みですが、良い気づきを口に出さずにしまい込んでしまうことも。",
+           tip:"あなたの「なんか違う気がする」は、かなり当たっています。もう少し自分の感覚を信じて、口に出してみて。"},
+  bold:   {emoji:"🚀", name:"勇敢な理論家", copy:"客観視は得意。でも自己評価はそれ以上。",
+           desc:"自分を客観的に見る力は十分にありますが、自己評価はそれをさらに上回っています。自信があるぶん決断が速い一方、「自分は大丈夫」という油断が隙になることも。",
+           tip:"確信が強いときほど「自分が間違っているとしたら、なぜ？」を一つだけ考える習慣を。精度が一段上がります。"},
   brave:  {emoji:"🧭", name:"自信の航海士", copy:"地図がなくても進む。ときどき座礁する。",
-           desc:"自信を持って判断できる行動派ですが、知識と自信のあいだにズレがあります。ダニング＝クルーガー効果の落とし穴に注意が必要なタイプ。",
-           tip:"「分からない」と言う練習を。分からないと認めた瞬間から、メタ認知は伸び始めます。"},
-  socrates:{emoji:"🦉", name:"無知の知の哲学者", copy:"「分からない」が分かっている。それが最大の才能。",
-           desc:"知識はまだ発展途上ですが、自分の理解度を正直に見積もれています。これはメタ認知の土台そのもの。学ぶほど一気に伸びるタイプです。",
-           tip:"心理学や行動経済学の入門書を1冊読むだけで、偏差値は大きく跳ねるはず。素直さという最強の武器を活かして。"},
-  cog:    {emoji:"🧠", name:"思考のハッカー", copy:"脳のバグを見抜く、認知の分析家。",
-           desc:"とくに「人がどう考え、どう間違えるか」への理解が深いタイプ。バイアスやヒューリスティックの知識で、自分や他人の判断の歪みに気づけます。",
-           tip:"認知の理屈は分かっている分、感情の働きに目を向けると、人の行動がさらに立体的に見えてきます。"},
+           desc:"迷わず動ける行動派ですが、「自分はわかっている」という感覚と実際の行動のあいだにズレがあります。気づかないうちに感情や空気に流されているかもしれません。",
+           tip:"一日の終わりに「今日、感情に動かされた場面はあった？」と振り返るだけで、メタ認知はぐっと伸びます。"},
+  socrates:{emoji:"🦉", name:"無知の知の哲学者", copy:"「まだ見えていない」が見えている。それが才能。",
+           desc:"とっさの場面では思考や感情に流されやすいものの、自分のそうした傾向を正直に把握できています。自分を正しく知っていることは、メタ認知の土台そのもの。伸びしろが最も大きいタイプです。",
+           tip:"心が動いたとき、「今、自分は〇〇と感じている」と心の中で実況してみて。それだけで反応と行動のあいだに余白が生まれます。"},
+  cog:    {emoji:"🧠", name:"思考のハッカー", copy:"自分の考えのバグを、自分で見つけて直せる人。",
+           desc:"とくに「自分の考え方そのもの」を客観視する力が強いタイプ。思い込みや楽観的な見積もりに気づき、考えをアップデートできます。",
+           tip:"思考を見る力はすでに十分。次は感情や体調が判断にどう影響しているかに目を向けると、さらに隙がなくなります。"},
   emo:    {emoji:"💗", name:"感情の翻訳家", copy:"心のざわめきを、言葉に変えられる人。",
-           desc:"感情がどう生まれ、どう変化するかへの理解が深いタイプ。自分の気持ちに飲み込まれにくく、他人の感情にも寄り添えます。",
-           tip:"感情の知識に、認知バイアスや集団心理の知識を掛け合わせると「なぜその気持ちになるのか」まで説明できるようになります。"},
+           desc:"とくに自分の感情の動きに気づき、飲み込まれずに扱う力が強いタイプ。イライラや不安の正体を見極められるので、人間関係でも落ち着いていられます。",
+           tip:"感情を読む力を「集団の空気」にも向けてみて。場の雰囲気に流されているときにも気づけるようになります。"},
   soc:    {emoji:"🌐", name:"社会の観察者", copy:"人の群れの動きを、一歩引いて眺めている。",
-           desc:"同調・帰属・集団の力学など、社会の中で人がどう振る舞うかへの理解が深いタイプ。空気に流されず、場の構造を読み解けます。",
-           tip:"社会を見る目を自分にも向けて。「自分も今、同調していないか？」と問えると最強です。"},
+           desc:"とくに他人の行動や集団の空気を客観的に捉える力が強いタイプ。相手の事情を想像でき、同調圧力にも流されにくいのが持ち味です。",
+           tip:"その観察眼を自分自身にも向けてみて。「自分も今、思い込みで判断していない？」と問えると最強です。"},
   self:   {emoji:"🪞", name:"内省の探偵", copy:"自分という最大の謎に挑む人。",
-           desc:"内観の限界や自己評価の歪みなど「自分を知ることの難しさ」への理解が深いタイプ。自分を疑える力は、メタ認知の要です。",
-           tip:"内省だけでは限界があるのも事実。信頼できる人からのフィードバックを取り入れると、自己理解の精度が上がります。"},
+           desc:"とくに「自分のことを分かったつもりにならない」力が強いタイプ。自分の説明や評価を疑い、フィードバックから学べます。",
+           tip:"内省だけでは限界があるのも事実。信頼できる人に「自分ってどう見える？」と聞いてみると、自己理解がさらに深まります。"},
 };
 
 const $ = id => document.getElementById(id);
-let order = [], idx = 0, answers = [], current = null, picked = null;
+let order = [], idx = 0, picks = [], pred = null, current = [];
 
 function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-function show(id){ for(const s of ["start","quiz","result"]) $(s).classList.toggle("hidden", s!==id); window.scrollTo({top:0}); }
+function show(id){ for(const s of ["start","predict","quiz","result"]) $(s).classList.toggle("hidden", s!==id); window.scrollTo({top:0}); }
 
 function start(){
-  order = shuffle(QUESTIONS); idx = 0; answers = [];
-  show("quiz"); renderQ();
+  // interleave categories so the same kind of scene doesn't repeat back to back
+  const by = {}; for(const k in CATS) by[k] = shuffle(SCENES.filter(x=>x.c===k));
+  order = []; for(let r=0;r<4;r++) for(const k of shuffle(Object.keys(CATS))) order.push(by[k][r]);
+  current = order.map(sc => shuffle(sc.o));
+  idx = 0; picks = new Array(order.length).fill(null); pred = null;
+  const box = $("predOpts"); box.innerHTML = "";
+  PRED.forEach(([t,v])=>{
+    const b = document.createElement("button"); b.className="opt"; b.textContent=t;
+    b.onclick = () => { pred = v; b.classList.add("sel"); setTimeout(()=>{ show("quiz"); renderQ(); }, 180); };
+    box.appendChild(b);
+  });
+  show("predict");
 }
 
 function renderQ(){
-  const q = order[idx];
-  current = {q, opts: shuffle(q.a.map((t,i)=>({t, ok:i===0})))};
-  picked = null;
+  const sc = order[idx];
   $("qcount").textContent = `Q${idx+1} / ${order.length}`;
-  $("qcat").textContent = CATS[q.c].short;
+  $("qcat").textContent = CATS[sc.c].short;
   $("bar").style.width = (idx/order.length*100)+"%";
-  $("qtext").textContent = q.q;
+  $("qscene").textContent = "📍 " + sc.s;
+  $("qtext").textContent = sc.q + " あなたなら？";
   const box = $("opts"); box.innerHTML = "";
-  current.opts.forEach((o,i)=>{
+  current[idx].forEach((o,i)=>{
     const b = document.createElement("button");
-    b.className = "opt"; b.textContent = o.t;
-    b.onclick = () => { picked = i; [...box.children].forEach((c,k)=>c.classList.toggle("sel",k===i)); $("conf").classList.add("show"); };
+    b.className = "opt" + (picks[idx]===i ? " sel" : ""); b.textContent = o[0];
+    b.onclick = () => choose(i);
     box.appendChild(b);
   });
-  $("conf").classList.remove("show");
-  $("fb").classList.remove("show");
-  document.querySelectorAll(".cbtn").forEach(b=>b.disabled=false);
+  $("backBtn").disabled = idx===0;
+  const body = $("qbody"); body.classList.remove("anim"); void body.offsetWidth; body.classList.add("anim");
 }
 
-function answer(conf){
-  if(picked===null) return;
-  const ok = current.opts[picked].ok;
-  answers.push({q:current.q, ok, conf});
-  const box = $("opts");
-  [...box.children].forEach((c,k)=>{
-    c.disabled = true;
-    if(current.opts[k].ok) c.classList.add("correct");
-    else if(k===picked) c.classList.add("wrong");
-  });
-  document.querySelectorAll(".cbtn").forEach(b=>b.disabled=true);
-  $("conf").classList.remove("show");
-  const v = $("verdict");
-  v.className = "verdict " + (ok?"ok":"ng");
-  v.textContent = ok ? `⭕ 正解（自信度 ${conf*100}%）` : `❌ 不正解（自信度 ${conf*100}%）`;
-  $("ex").textContent = current.q.ex;
-  $("nextBtn").textContent = idx===order.length-1 ? "結果を見る" : "次へ";
-  $("fb").classList.add("show");
-  $("fb").scrollIntoView({behavior:"smooth", block:"nearest"});
-}
-
-function next(){
-  idx++;
-  if(idx>=order.length) finish(); else { renderQ(); window.scrollTo({top:0,behavior:"smooth"}); }
+let locked = false;
+function choose(i){
+  if(locked) return; locked = true;
+  picks[idx] = i;
+  [...$("opts").children].forEach((c,k)=>c.classList.toggle("sel",k===i));
+  setTimeout(()=>{ locked = false; idx++; if(idx>=order.length) finish(); else { renderQ(); window.scrollTo({top:0,behavior:"smooth"}); } }, 220);
 }
 
 // ---- scoring ----
-function normCdf(z){ // Abramowitz-Stegun approximation
+function normCdf(z){
   const t = 1/(1+0.2316419*Math.abs(z));
   const d = 0.3989423*Math.exp(-z*z/2);
   const p = d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
   return z>0 ? 1-p : p;
 }
+const ptsOf = i => current[i][picks[i]][1];
 
 function score(){
-  const n = answers.length;
   const cat = {};
-  for(const k in CATS){ const a = answers.filter(x=>x.q.c===k); cat[k] = Math.round(a.filter(x=>x.ok).length/a.length*100); }
-  const acc = answers.filter(x=>x.ok).length/n;
-  const brier = answers.reduce((s,x)=>s+Math.pow(x.conf-(x.ok?1:0),2),0)/n;
-  const cal = Math.max(0, Math.min(100, Math.round(100*(1-brier/0.4))));
-  const meanConf = answers.reduce((s,x)=>s+x.conf,0)/n;
-  const bias = meanConf - acc; // + overconfident, - underconfident
-  const total = 0.6*acc*100 + 0.4*cal;
-  let dev = 50 + (total-58)/14*10;
-  dev = Math.max(25, Math.min(80, dev));
-  dev = Math.round(dev*10)/10;
+  for(const k in CATS){
+    let s=0, n=0; order.forEach((sc,i)=>{ if(sc.c===k){ s+=ptsOf(i); n++; } });
+    cat[k] = Math.round(s/(n*3)*100);
+  }
+  const sum = order.reduce((s,_,i)=>s+ptsOf(i),0);
+  const total = Math.round(sum/(order.length*3)*100);
+  const gap = pred - total; // + overestimate, - underestimate
+  const cal = Math.max(0, Math.min(100, Math.round(100 - Math.abs(gap)*2)));
+  const metric = 0.75*total + 0.25*cal;
+  let dev = 50 + (metric-68)/12*10;
+  dev = Math.round(Math.max(25, Math.min(80, dev))*10)/10;
   const top = Math.max(0.1, (1-normCdf((dev-50)/10))*100);
-  return {cat, acc:Math.round(acc*100), cal, bias, dev, top, total};
+  return {cat, total, gap, cal, dev, top};
 }
 
 function pickType(s){
-  const K = s.acc, b = s.bias;
-  if(K>=75 && Math.abs(b)<=0.1) return "sage";
-  if(K>=69 && b < -0.1) return "humble";
-  if(K>=69 && b > 0.12) return "bold";
-  if(K<56 && b > 0.12) return "brave";
-  if(K<56 && b <= 0.12) return "socrates";
-  // strongest category (ties broken randomly-stable by order)
+  const T = s.total, g = s.gap;
+  if(T>=80 && Math.abs(g)<=15) return "sage";
+  if(T>=70 && g < -15) return "humble";
+  if(T>=70 && g > 15) return "bold";
+  if(g > 15) return "brave";
+  if(T<55) return "socrates";
   let best = "cog"; for(const k in s.cat) if(s.cat[k] > s.cat[best]) best = k;
   return best;
 }
 
 function calText(s){
-  const p = Math.round(Math.abs(s.bias)*100);
-  if(Math.abs(s.bias)<=0.08) return `平均の自信度と実際の正答率のズレはわずか ${p} ポイント。「どれだけ分かっているか」をかなり正確に把握できています。これはメタ認知の中核となる力です。`;
-  if(s.bias>0) return `平均の自信度が実際の正答率より ${p} ポイント高く、<b>やや自信過剰</b>の傾向です。人は誰でもこの傾向を持ちますが、確信が強いときほど一度立ち止まると判断の精度が上がります。`;
-  return `平均の自信度が実際の正答率より ${p} ポイント低く、<b>やや自信過少</b>の傾向です。慎重さは美点ですが、あなたの判断は自分で思うより当たっています。`;
+  const p = Math.abs(s.gap);
+  if(p<=10) return `自己予想 ${pred} に対して、実際の客観視スコアは ${s.total}。ズレはわずか ${p} ポイントで、<b>自分のことをかなり正確に把握できています</b>。これこそメタ認知の中核です。`;
+  if(s.gap>0) return `自己予想 ${pred} に対して、実際の客観視スコアは ${s.total}。<b>自分を ${p} ポイント高く見積もっていました</b>。人は誰でも自己評価が甘くなりがちです。「分かっているつもり」に気づけたこと自体が、伸びるチャンスです。`;
+  return `自己予想 ${pred} に対して、実際の客観視スコアは ${s.total}。<b>自分を ${p} ポイント低く見積もっていました</b>。実際のあなたは、自分で思うよりずっと冷静に物事を見られています。`;
 }
-
-function biasLabel(b){ const p = Math.round(b*100); return (p>0?"+":"")+p; }
+function strongText(s){
+  const ks = Object.keys(s.cat); ks.sort((a,b)=>s.cat[b]-s.cat[a]);
+  const hi = ks[0], lo = ks[ks.length-1];
+  if(s.cat[hi]===s.cat[lo]) return `4つの分野がすべて ${s.cat[hi]} 点で並んでいます。どの場面でもブレの少ない、バランス型です。`;
+  return `<b>強み：${CATS[hi].name}（${s.cat[hi]}点）</b><br>伸びしろ：${CATS[lo].name}（${s.cat[lo]}点）`;
+}
+const signed = v => (v>0?"+":"")+v;
+const topText = s => s.top<1 ? s.top.toFixed(1) : String(Math.round(s.top));
 
 let lastResult = null;
 function finish(){
   $("bar").style.width = "100%";
-  const s = score(); const tk = pickType(s); const t = TYPES[tk];
+  const s = score(); const t = TYPES[pickType(s)];
   lastResult = {s, t};
   $("rEmoji").textContent = t.emoji;
   $("rType").textContent = t.name;
   $("rCopy").textContent = t.copy;
   $("rDev").textContent = s.dev.toFixed(1);
-  $("rPct").textContent = `上位 約${s.top<1?s.top.toFixed(1):Math.round(s.top)}%`;
-  $("rAcc").textContent = s.acc+"%";
-  $("rCal").textContent = s.cal;
-  $("rBias").textContent = biasLabel(s.bias);
+  $("rPct").textContent = `上位 約${topText(s)}%`;
+  $("rTotal").textContent = s.total;
+  $("rPred").textContent = pred;
+  $("rGap").textContent = signed(s.gap);
   $("rDesc").textContent = t.desc;
   $("rCalDesc").innerHTML = calText(s);
+  $("rStrong").innerHTML = strongText(s);
   $("rTip").textContent = t.tip;
   drawRadarSvg(s);
   const rv = $("review"); rv.innerHTML = "";
-  answers.forEach((a,i)=>{
+  order.forEach((sc,i)=>{
+    const p = ptsOf(i);
     const li = document.createElement("li");
-    li.innerHTML = `<span class="mk ${a.ok?"ok":"ng"}">${a.ok?"○":"×"}</span><div><span class="tag">${CATS[a.q.c].short}</span> <span class="muted small">自信${a.conf*100}%</span><br></div>`;
-    const d = li.querySelector("div"); d.appendChild(document.createTextNode(a.q.q));
-    const ans = document.createElement("div"); ans.className="muted small"; ans.textContent = "正解：" + a.q.a[0]; d.appendChild(ans);
-    rv.appendChild(li);
+    const head = document.createElement("div");
+    head.innerHTML = `<span class="tag">${CATS[sc.c].short}</span> <span class="dots">${"●".repeat(p)}${"○".repeat(3-p)}</span>`;
+    const q = document.createElement("div"); q.textContent = sc.q;
+    const you = document.createElement("div"); you.className="you"; you.textContent = "あなた：" + current[i][picks[i]][0];
+    const hint = document.createElement("div"); hint.className="hint"; hint.textContent = "💡 " + sc.h;
+    li.append(head, q, you, hint); rv.appendChild(li);
   });
   setupShare(s, t);
   show("result");
@@ -424,16 +419,15 @@ function finish(){
 // ---- radar ----
 function radarAxes(s){
   return [
-    {label:"認知", v:s.cat.cog}, {label:"感情", v:s.cat.emo}, {label:"社会", v:s.cat.soc},
-    {label:"自己", v:s.cat.self}, {label:"見積もり", v:s.cal},
+    {label:"思考", v:s.cat.cog}, {label:"感情", v:s.cat.emo}, {label:"対人", v:s.cat.soc},
+    {label:"自己", v:s.cat.self}, {label:"自己評価", v:s.cal},
   ];
 }
-function radarPts(axes, cx, cy, r, scale=1){
-  return axes.map((a,i)=>{
-    const ang = -Math.PI/2 + i*2*Math.PI/axes.length;
-    const rr = r*scale*(a.v===undefined?1:1);
-    return {x:cx+Math.cos(ang)*rr, y:cy+Math.sin(ang)*rr, ang};
-  });
+function radarPts(axes, cx, cy, r){
+  return axes.map((a,i)=>{ const ang = -Math.PI/2 + i*2*Math.PI/axes.length; return {x:cx+Math.cos(ang)*r, y:cy+Math.sin(ang)*r, ang}; });
+}
+function valuePts(axes, cx, cy, R){
+  return axes.map((a,i)=>{ const ang=-Math.PI/2+i*2*Math.PI/axes.length, rr=R*Math.max(0.04,a.v/100); return {x:cx+Math.cos(ang)*rr, y:cy+Math.sin(ang)*rr}; });
 }
 function drawRadarSvg(s){
   const svg = $("radar"); const axes = radarAxes(s);
@@ -441,16 +435,16 @@ function drawRadarSvg(s){
   const line = css.getPropertyValue("--line").trim(), accent = css.getPropertyValue("--accent").trim(), muted = css.getPropertyValue("--muted").trim(), text = css.getPropertyValue("--text").trim();
   let h = "";
   for(const k of [0.25,0.5,0.75,1]){
-    const p = radarPts(axes,cx,cy,R,k).map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const p = radarPts(axes,cx,cy,R*k).map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
     h += `<polygon points="${p}" fill="none" stroke="${line}" stroke-width="1"/>`;
   }
   radarPts(axes,cx,cy,R).forEach((p,i)=>{
     h += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${line}"/>`;
-    const lx = cx+Math.cos(p.ang)*(R+24), ly = cy+Math.sin(p.ang)*(R+24);
+    const lx = cx+Math.cos(p.ang)*(R+26), ly = cy+Math.sin(p.ang)*(R+24);
     h += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="${text}">${axes[i].label}</text>`;
     h += `<text x="${lx}" y="${ly+16}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${muted}">${axes[i].v}</text>`;
   });
-  const vp = axes.map((a,i)=>{ const ang=-Math.PI/2+i*2*Math.PI/axes.length; const rr=R*Math.max(0.04,a.v/100); return `${(cx+Math.cos(ang)*rr).toFixed(1)},${(cy+Math.sin(ang)*rr).toFixed(1)}`; }).join(" ");
+  const vp = valuePts(axes,cx,cy,R).map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
   h += `<polygon points="${vp}" fill="${accent}" fill-opacity=".28" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round"/>`;
   svg.innerHTML = h;
 }
@@ -458,7 +452,7 @@ function drawRadarSvg(s){
 // ---- share ----
 function pageUrl(){ return /^https?:/.test(location.protocol) ? location.href.split(/[?#]/)[0] : ""; }
 function shareText(s,t){
-  return `【メタ認知診断】\n私のタイプは「${t.emoji}${t.name}」\nメタ認知偏差値 ${s.dev.toFixed(1)}（上位約${s.top<1?s.top.toFixed(1):Math.round(s.top)}%）\n正答率${s.acc}%・見積もり精度${s.cal}\n#メタ認知診断`;
+  return `【メタ認知診断】\n私のタイプは「${t.emoji}${t.name}」\nメタ認知偏差値 ${s.dev.toFixed(1)}（上位約${topText(s)}%）\n客観視スコア${s.total}・自己予想とのズレ${signed(s.gap)}\n#メタ認知診断`;
 }
 function setupShare(s,t){
   const text = shareText(s,t), url = pageUrl();
@@ -476,7 +470,7 @@ function makeImage(){
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   ctx.fillStyle="rgba(255,255,255,.06)"; roundRect(ctx,40,40,W-80,H-80,32); ctx.fill();
   const tg = ctx.createLinearGradient(80,0,700,0); tg.addColorStop(0,"#a993ff"); tg.addColorStop(1,"#ff7aa8");
-  ctx.textBaseline="alphabetic";
+  ctx.textBaseline="alphabetic"; ctx.textAlign="left";
   ctx.fillStyle="rgba(255,255,255,.65)"; ctx.font=`700 26px ${F}`; ctx.fillText("METACOGNITION TEST ｜ メタ認知診断",90,110);
   ctx.font=`88px ${F}`; ctx.fillStyle="#fff"; ctx.fillText(t.emoji,90,230);
   ctx.fillStyle=tg; ctx.font=`900 64px ${F}`; ctx.fillText(t.name,200,222);
@@ -484,19 +478,17 @@ function makeImage(){
   ctx.fillStyle="rgba(255,255,255,.7)"; ctx.font=`700 30px ${F}`; ctx.fillText("メタ認知偏差値",92,380);
   ctx.fillStyle=tg; ctx.font=`900 150px ${F}`; ctx.fillText(s.dev.toFixed(1),86,520);
   ctx.fillStyle="rgba(255,255,255,.8)"; ctx.font=`700 28px ${F}`;
-  ctx.fillText(`上位 約${s.top<1?s.top.toFixed(1):Math.round(s.top)}%　正答率 ${s.acc}%　見積もり精度 ${s.cal}`,92,580);
-  // radar
+  ctx.fillText(`上位 約${topText(s)}%　客観視 ${s.total}　予想とのズレ ${signed(s.gap)}`,92,580);
   const axes = radarAxes(s), cx=930, cy=360, R=160;
   ctx.strokeStyle="rgba(255,255,255,.18)"; ctx.lineWidth=2;
-  for(const k of [0.25,0.5,0.75,1]){ const p=radarPts(axes,cx,cy,R,k); ctx.beginPath(); p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)); ctx.closePath(); ctx.stroke(); }
+  for(const k of [0.25,0.5,0.75,1]){ const p=radarPts(axes,cx,cy,R*k); ctx.beginPath(); p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)); ctx.closePath(); ctx.stroke(); }
   radarPts(axes,cx,cy,R).forEach((p,i)=>{
     ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p.x,p.y); ctx.stroke();
-    const lx=cx+Math.cos(p.ang)*(R+42), ly=cy+Math.sin(p.ang)*(R+34);
+    const lx=cx+Math.cos(p.ang)*(R+48), ly=cy+Math.sin(p.ang)*(R+34);
     ctx.textAlign="center"; ctx.fillStyle="#fff"; ctx.font=`700 24px ${F}`; ctx.fillText(axes[i].label,lx,ly);
     ctx.fillStyle="rgba(255,255,255,.6)"; ctx.font=`500 20px ${F}`; ctx.fillText(String(axes[i].v),lx,ly+24);
   });
-  ctx.beginPath();
-  axes.forEach((a,i)=>{ const ang=-Math.PI/2+i*2*Math.PI/axes.length, rr=R*Math.max(0.04,a.v/100); const x=cx+Math.cos(ang)*rr, y=cy+Math.sin(ang)*rr; i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.beginPath(); valuePts(axes,cx,cy,R).forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
   ctx.closePath(); ctx.fillStyle="rgba(169,147,255,.38)"; ctx.fill(); ctx.strokeStyle="#c5b6ff"; ctx.lineWidth=4; ctx.lineJoin="round"; ctx.stroke();
   ctx.textAlign="right"; ctx.fillStyle="rgba(255,255,255,.55)"; ctx.font=`700 24px ${F}`; ctx.fillText("#メタ認知診断",W-90,H-62);
   ctx.textAlign="left";
@@ -505,8 +497,7 @@ function makeImage(){
 
 $("startBtn").onclick = start;
 $("retryBtn").onclick = () => show("start");
-$("nextBtn").onclick = next;
-document.querySelectorAll(".cbtn").forEach(b=>b.onclick=()=>answer(parseFloat(b.dataset.c)));
+$("backBtn").onclick = () => { if(idx>0 && !locked){ idx--; renderQ(); } };
 $("copyBtn").onclick = async () => {
   const {s,t} = lastResult; const url = pageUrl();
   try{ await navigator.clipboard.writeText(shareText(s,t)+(url?"\n"+url:"")); toast("コピーしました"); }
