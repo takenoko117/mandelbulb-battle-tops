@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>風の日傘 — 息で吹く印象派</title>
+<meta name="description" content="マイクに息を吹きかけると、モネ《日傘をさす女》風の絵に風が吹く。息の波形で日傘とスカートがはためくミニゲーム。">
+<meta property="og:title" content="風の日傘 — 息で吹く印象派">
+<meta property="og:description" content="マイクに息を吹きかけて、絵の中に風を起こそう。日傘をおちょこにして、飛ばせるか？">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#161b24;color:#f6f0e0;overflow:hidden;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,#2a3242 0%,#12161e 75%)}
+#frame{padding:.8em;background:linear-gradient(135deg,#6b4f1d,#e6c97a 22%,#8a6a2c 45%,#f0d98f 62%,#7a5b22 85%,#c9a457);
+  box-shadow:0 18px 50px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.25)}
+#wrap{position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+canvas{display:block}
+#hud{position:absolute;inset:0;pointer-events:none}
+#missions{position:absolute;left:.7em;top:.7em;background:rgba(20,24,34,.42);backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);border-radius:.6em;padding:.45em .7em;font-size:.8em;line-height:1.55}
+#missions .m{opacity:.75;transition:opacity .3s,color .3s}
+#missions .m.done{opacity:1;color:#ffe9a3}
+#missions .m .b{display:inline-block;width:1.15em}
+#timer{margin-top:.25em;font-size:.9em;opacity:.85;font-variant-numeric:tabular-nums}
+#meter{position:absolute;right:.7em;top:.7em;width:3.6em;text-align:center;background:rgba(20,24,34,.42);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border-radius:.6em;padding:.5em .3em}
+#bar{position:relative;width:.8em;height:9em;margin:0 auto;border-radius:.4em;background:rgba(255,255,255,.18);overflow:hidden}
+#fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#9fd7ff,#fff3b0 60%,#ff9d7a)}
+#peak{position:absolute;left:-.1em;right:-.1em;height:2px;background:#fff;bottom:0;opacity:.8}
+#ms{margin-top:.35em;font-size:1.05em;font-variant-numeric:tabular-nums}
+#ms small{font-size:.6em;opacity:.8}
+#bf{font-size:.66em;opacity:.85;margin-top:.1em;white-space:nowrap}
+#msg{position:absolute;left:0;right:0;top:40%;text-align:center;font-size:1.7em;font-weight:700;
+  color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.6);opacity:0;transform:translateY(0)}
+#msg.show{animation:pop 1.9s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translateY(.5em) scale(.9)}12%{opacity:1;transform:translateY(0) scale(1.05)}
+  25%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-.8em)}}
+#hint{position:absolute;left:0;right:0;bottom:3.4em;text-align:center;font-size:.9em;
+  text-shadow:0 1px 6px rgba(0,0,0,.7);transition:opacity .6s}
+#ctrl{position:absolute;left:.7em;bottom:.6em;font-size:.72em;pointer-events:auto;display:flex;gap:.6em;align-items:center;
+  background:rgba(20,24,34,.42);border-radius:.6em;padding:.25em .6em}
+#ctrl input{width:6em;accent-color:#e6c97a}
+#mode{opacity:.85}
+.ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(14,18,28,.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.ov.hidden{display:none}
+.card{width:84%;max-width:30em;background:rgba(250,246,234,.95);color:#2b2a33;border-radius:.9em;
+  padding:1.3em 1.4em;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.card h1{margin:.1em 0 .2em;font-size:1.75em;letter-spacing:.08em}
+.card h2{margin:.1em 0 .4em;font-size:1.5em}
+.card .sub{font-size:.75em;color:#6f6a5e;margin-bottom:.9em}
+.card p{font-size:.88em;line-height:1.7;margin:.5em 0}
+.card .note{font-size:.68em;color:#7a7568;margin-top:.9em}
+.btn{display:block;width:100%;margin:.55em 0 0;padding:.75em 1em;font:inherit;font-size:.95em;border:0;border-radius:.6em;cursor:pointer;
+  background:#3f6a8f;color:#fff;box-shadow:0 3px 0 #2a4a66}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #2a4a66}
+.btn.alt{background:#e7dfc8;color:#3b382f;box-shadow:0 3px 0 #bfb59a}
+.btn.x{background:#111;box-shadow:0 3px 0 #000}
+.res{display:flex;justify-content:center;gap:1.6em;margin:.6em 0 .2em}
+.res div{font-size:.75em;color:#6f6a5e}
+.res b{display:block;font-size:1.9em;color:#2b2a33;font-variant-numeric:tabular-nums}
+#err{color:#b2402f;font-size:.8em;min-height:1em;margin-top:.4em}
+</style>
+</head>
+<body>
+<div id="stage"><div id="frame"><div id="wrap">
+  <canvas id="cv"></canvas>
+  <div id="hud">
+    <div id="missions"></div>
+    <div id="meter"><div id="bar"><div id="fill"></div><div id="peak"></div></div>
+      <div id="ms">0.0<small>m/s</small></div><div id="bf">静穏</div></div>
+    <div id="msg"></div>
+    <div id="hint"></div>
+    <div id="ctrl"><span id="mode">—</span><label>感度 <input id="sens" type="range" min="0.3" max="3" step="0.1" value="1"></label></div>
+  </div>
+  <div id="start" class="ov"><div class="card">
+    <h1>風の日傘</h1>
+    <div class="sub">クロード・モネ《散歩、日傘をさす女》(1875) へのオマージュ</div>
+    <p>マイクに<b>息を吹きかける</b>と、絵の中に風が吹きます。<br>
+      息の波形がそのまま、スカートの裾や日傘のふちを揺らします。<br>
+      強く吹いて、日傘を<b>おちょこ</b>にして、<b>飛ばして</b>みよう。</p>
+    <button class="btn" id="bMic">🎤 マイクで遊ぶ</button>
+    <button class="btn alt" id="bHold">🖱 長押しで遊ぶ（マイクなし）</button>
+    <div id="err"></div>
+    <div class="note">マイクの音声は端末の中で音量と波形を計算するだけで、録音や送信は一切しません。</div>
+  </div></div>
+  <div id="clear" class="ov hidden"><div class="card">
+    <h2>印象、風。</h2>
+    <p>草も、ヴェールも、スカートも、日傘も。<br>ぜんぶ風に吹かせました。</p>
+    <div class="res"><div>クリアタイム<b id="rTime">0.0</b>秒</div><div>最大風速<b id="rWind">0.0</b>m/s</div></div>
+    <button class="btn" id="bAgain">もう一度吹く</button>
+    <button class="btn x" id="bShare">𝕏 でシェア</button>
+    <button class="btn alt" id="bFree">このまま絵で遊ぶ</button>
+  </div></div>
+</div></div></div>
+
+<script>
+'use strict';
+// ------------------------------------------------------------------ utils
+const W = 600, H = 800;
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+const sst = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const hsl = (h, s, l, a = 1) => `hsla(${h.toFixed(1)},${s.toFixed(1)}%,${l.toFixed(1)}%,${a})`;
+function dab(g, x, y, ang, len, w, col) {
+  const dx = Math.cos(ang) * len * .5, dy = Math.sin(ang) * len * .5;
+  g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x - dx, y - dy); g.lineTo(x + dx, y + dy); g.stroke();
+}
+const crestY = x => 692 - 45 * sst(250, 600, x) + 6 * Math.sin(x * .02);
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function makeLayer() {
+  const c = document.createElement('canvas');
+  c.width = Math.round(W * scale * dpr); c.height = Math.round(H * scale * dpr);
+  const g = c.getContext('2d'); g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  return { c, g };
+}
+
+// ------------------------------------------------------------------ static layers
+let skyL, landL, bodyL, texL, clouds = [];
+
+function paintSky() {
+  skyL = makeLayer(); const g = skyL.g, r = rng(11);
+  const gr = g.createLinearGradient(0, 0, 0, 720);
+  gr.addColorStop(0, '#4b79bb'); gr.addColorStop(.45, '#7fa8d8'); gr.addColorStop(1, '#d4e2e8');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 3200; i++) {
+    const x = r() * W, y = r() * 740, t = y / 740;
+    const col = hsl(212 + (r() - .5) * 14, 50 - t * 18 + (r() - .5) * 14, 48 + t * 36 + (r() - .5) * 12, .5);
+    dab(g, x, y, -.55 + (r() - .5) * .8, 14 + r() * 18, 3 + r() * 4, col);
+  }
+  // warm haze toward the horizon
+  for (let i = 0; i < 500; i++) {
+    const x = r() * W, y = 520 + r() * 200;
+    dab(g, x, y, -.3 + (r() - .5) * .6, 14 + r() * 16, 3 + r() * 3, hsl(45, 40, 88, .25));
+  }
+}
+
+function makeCloud(seed, w, h) {
+  const L = { c: document.createElement('canvas') };
+  L.c.width = Math.round(w * scale * dpr); L.c.height = Math.round(h * scale * dpr);
+  const g = L.c.getContext('2d'); g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); g.lineCap = 'round';
+  const r = rng(seed); const blobs = [];
+  const nb = 5 + (r() * 4 | 0);
+  for (let i = 0; i < nb; i++) blobs.push({ x: w * (.2 + .6 * r()), y: h * (.4 + .3 * r()), rx: w * (.12 + .14 * r()), ry: h * (.18 + .16 * r()) });
+  for (let i = 0; i < 900; i++) {
+    const b = blobs[r() * nb | 0]; const a = r() * Math.PI * 2, d = Math.sqrt(r());
+    const x = b.x + Math.cos(a) * b.rx * d, y = b.y + Math.sin(a) * b.ry * d;
+    const t = y / h; // bottom = shadow
+    let col;
+    if (t > .62 && r() < .7) col = hsl(240 + (r() - .5) * 20, 18, 74 + (r() - .5) * 10, .55);
+    else if (r() < .25) col = hsl(42, 60, 92, .6);
+    else col = hsl(220, 20, 95 + (r() - .5) * 6, .6);
+    dab(g, x, y, -.4 + (r() - .5) * 1.2, 8 + r() * 14, 4 + r() * 5, col);
+  }
+  return L.c;
+}
+
+function paintClouds() {
+  const defs = [[3, 300, 140, 40, 110], [7, 240, 120, 330, 60], [13, 280, 130, 120, 300], [17, 220, 110, 420, 250],
+    [23, 260, 120, -60, 430], [29, 200, 100, 300, 440]];
+  const old = clouds; clouds = defs.map((d, i) => ({ img: makeCloud(d[0], d[1], d[2]), w: d[1], h: d[2],
+    x: old[i] ? old[i].x : d[3], y: d[4], k: .7 + .5 * (1 - d[4] / 500) }));
+}
+
+function paintLand() {
+  landL = makeLayer(); const g = landL.g, r = rng(41);
+  // the boy behind the crest
+  const cx = 488;
+  g.fillStyle = hsl(40, 30, 88); g.beginPath();
+  g.moveTo(cx - 9, 612); g.quadraticCurveTo(cx - 14, 640, cx - 13, 680); g.lineTo(cx + 13, 680); g.quadraticCurveTo(cx + 13, 640, cx + 9, 612); g.closePath(); g.fill();
+  for (let i = 0; i < 90; i++) {
+    const x = cx - 12 + r() * 24, y = 612 + r() * 60;
+    dab(g, x, y, 1.4 + (r() - .5) * .5, 6 + r() * 6, 2 + r() * 2,
+      x < cx - 2 ? hsl(225, 18, 70 + r() * 10, .8) : hsl(45, 45, 86 + r() * 8, .8));
+  }
+  g.fillStyle = hsl(25, 40, 70); g.beginPath(); g.ellipse(cx, 602, 7, 8.5, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = hsl(18, 35, 55, .6); g.beginPath(); g.ellipse(cx - 3, 604, 4, 7, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = hsl(30, 45, 55); g.beginPath(); g.ellipse(cx, 595, 14, 3.5, -.08, 0, Math.PI * 2); g.fill(); // hat brim
+  g.fillStyle = hsl(225, 35, 30); g.beginPath(); g.ellipse(cx, 591, 7.5, 5.5, 0, Math.PI, 0); g.fill();
+
+  // the hill
+  const path = new Path2D(); path.moveTo(0, crestY(0));
+  for (let x = 0; x <= W; x += 10) path.lineTo(x, crestY(x));
+  path.lineTo(W, H); path.lineTo(0, H); path.closePath();
+  const gr = g.createLinearGradient(0, 640, 0, H);
+  gr.addColorStop(0, '#a9b866'); gr.addColorStop(.25, '#77964a'); gr.addColorStop(1, '#3f6334');
+  g.fillStyle = gr; g.fill(path);
+  g.save(); g.clip(path);
+  for (let i = 0; i < 3000; i++) {
+    const x = r() * W, cy = crestY(x), y = cy - 4 + Math.pow(r(), .8) * (H - cy + 4), t = (y - cy) / (H - cy);
+    let col = hsl(78 + (r() - .5) * 30, 38 + (r() - .5) * 18, 58 - t * 30 + (r() - .5) * 16, .6);
+    if (r() < .05) col = hsl(52, 85, 66, .85);
+    dab(g, x, y, -1.57 + (r() - .5) * 1.1, 5 + t * 18 + r() * 6, 2 + t * 3 + r() * 2, col);
+  }
+  // sunlit rim along the crest
+  for (let i = 0; i < 400; i++) {
+    const x = r() * W, y = crestY(x) + r() * 10;
+    dab(g, x, y, -1.4 + (r() - .5) * .8, 4 + r() * 6, 2 + r() * 2, hsl(60, 50, 72, .55));
+  }
+  g.restore();
+}
+
+// skirt / body geometry
+const SK = { wx: 330, wy: 425, wh: 34, hh: 118, hy: 702, sway: 1, lift: 1 };
+const PT = { wx: 330, wy: 440, wh: 30, hh: 100, hy: 698, sway: .72, lift: .42 };
+const HAND = { x: 287, y: 352 };
+
+function torsoPath() {
+  const p = new Path2D();
+  p.moveTo(304, 322); p.quadraticCurveTo(294, 372, 298, 428); p.lineTo(363, 428);
+  p.quadraticCurveTo(367, 372, 357, 322); p.quadraticCurveTo(330, 310, 304, 322); p.closePath(); return p;
+}
+
+function paintBody() {
+  bodyL = makeLayer(); const g = bodyL.g, r = rng(77);
+  // left arm (viewer right), hanging
+  g.strokeStyle = hsl(222, 18, 80); g.lineWidth = 14;
+  g.beginPath(); g.moveTo(354, 330); g.quadraticCurveTo(372, 380, 368, 428); g.stroke();
+  for (let i = 0; i < 30; i++) { const t = r(); dab(g, 354 + t * 14 + (r() - .5) * 8, 330 + t * 98, 1.35, 8 + r() * 6, 2.5, hsl(45, 40, 88 + r() * 8, .8)); }
+  g.fillStyle = hsl(25, 40, 72); g.beginPath(); g.ellipse(368, 432, 5, 6, 0, 0, Math.PI * 2); g.fill();
+  // torso
+  const tp = torsoPath();
+  g.fillStyle = hsl(222, 22, 82); g.fill(tp);
+  g.save(); g.clip(tp);
+  for (let i = 0; i < 220; i++) {
+    const x = 294 + r() * 74, y = 312 + r() * 118, u = (x - 294) / 74;
+    const col = u > .7 && r() < .7 ? hsl(45, 50, 92 + r() * 6, .75) : hsl(225 + (r() - .5) * 20, 22, 72 + r() * 18, .7);
+    dab(g, x, y, 1.57 + (r() - .5) * .9, 7 + r() * 9, 2.5 + r() * 2.5, col);
+  }
+  g.restore();
+  // neck & head
+  g.fillStyle = hsl(25, 38, 70); g.fillRect(323, 296, 12, 22);
+  g.fillStyle = hsl(26, 42, 74); g.beginPath(); g.ellipse(327, 283, 14.5, 18.5, .08, 0, Math.PI * 2); g.fill();
+  g.fillStyle = hsl(18, 30, 58, .55); g.beginPath(); g.ellipse(320, 286, 8, 15, .1, 0, Math.PI * 2); g.fill(); // shadowed face
+  for (let i = 0; i < 25; i++) dab(g, 322 + r() * 14, 270 + r() * 28, 1.2, 4 + r() * 4, 2, hsl(24, 40, 66 + r() * 12, .6));
+  // hair
+  g.fillStyle = hsl(28, 30, 30); g.beginPath(); g.ellipse(330, 270, 13, 6, .1, Math.PI, 0); g.fill();
+  // hat
+  g.fillStyle = hsl(46, 48, 72); g.beginPath(); g.ellipse(326, 266, 31, 7.5, -.1, 0, Math.PI * 2); g.fill();
+  g.fillStyle = hsl(44, 42, 64); g.beginPath(); g.ellipse(325, 258, 15, 10, -.1, Math.PI, 0); g.fill();
+  g.strokeStyle = hsl(230, 30, 35, .85); g.lineWidth = 3; g.beginPath(); g.moveTo(311, 261); g.lineTo(340, 258); g.stroke();
+  for (let i = 0; i < 40; i++) dab(g, 300 + r() * 52, 258 + r() * 12, -.1 + (r() - .5) * .4, 5 + r() * 6, 2, hsl(48, 55, 70 + r() * 18, .7));
+  // right arm (viewer left) raised to hold the parasol
+  g.strokeStyle = hsl(222, 18, 78); g.lineWidth = 14;
+  g.beginPath(); g.moveTo(308, 330); g.quadraticCurveTo(284, 380, 292, 392); g.quadraticCurveTo(296, 375, HAND.x + 2, HAND.y + 6); g.stroke();
+  for (let i = 0; i < 26; i++) dab(g, 288 + r() * 18, 336 + r() * 54, 1.8 + (r() - .5) * .8, 7 + r() * 5, 2.5, hsl(225, 20, 70 + r() * 20, .75));
+}
+
+function paintTexture() {
+  texL = makeLayer(); const g = texL.g, r = rng(5);
+  // canvas weave
+  g.globalAlpha = .022;
+  for (let y = 0; y < H; y += 2) { g.fillStyle = r() < .5 ? '#000' : '#fff'; g.fillRect(0, y, W, 1); }
+  for (let x = 0; x < W; x += 2) { g.fillStyle = r() < .5 ? '#000' : '#fff'; g.fillRect(x, 0, 1, H); }
+  g.globalAlpha = 1;
+  const vg = g.createRadialGradient(W / 2, H * .45, H * .35, W / 2, H * .5, H * .78);
+  vg.addColorStop(0, 'rgba(40,30,10,0)'); vg.addColorStop(1, 'rgba(40,30,10,.32)');
+  g.fillStyle = vg; g.fillRect(0, 0, W, H);
+}
+
+// ------------------------------------------------------------------ precomputed strokes
+const skStrokes = [], ptStrokes = [], grass = [], gores = [];
+(function precompute() {
+  let r = rng(101);
+  for (let i = 0; i < 640; i++) {
+    const u = r(), v = Math.pow(r(), .75);
+    let col;
+    if (u > .76 && r() < .75) col = hsl(46, 55, 90 + r() * 7, .78);
+    else if (r() < .12) col = hsl(52, 60, 84, .6);
+    else col = hsl(222 + (r() - .5) * 26, 20 + r() * 14, 70 + r() * 22 - (1 - u) * 6, .72);
+    skStrokes.push({ u, v, len: 9 + r() * 14, w: 3 + r() * 3.5, col, fold: false });
+  }
+  for (let f = 0; f < 9; f++) {
+    const u = .08 + f / 8 * .84 + (r() - .5) * .04;
+    for (let j = 0; j < 14; j++) skStrokes.push({ u: u + (r() - .5) * .02, v: .12 + j / 13 * .86, len: 14, w: 2.2,
+      col: hsl(232, 22, 60 + r() * 8, .55), fold: true });
+  }
+  r = rng(202);
+  for (let i = 0; i < 160; i++) ptStrokes.push({ u: r(), v: .55 + r() * .45, len: 7 + r() * 8, w: 2.5 + r() * 2, col: hsl(45, 25, 92 + r() * 6, .8) });
+  r = rng(303);
+  for (let i = 0; i < 720; i++) {
+    const x = r() * W, cy = crestY(x), y = cy + 3 + Math.pow(r(), .55) * (H - cy - 3), t = (y - 640) / 160;
+    const fl = r();
+    grass.push({ x, y, len: 8 + t * 46 + r() * 10, w: 1.5 + t * 3.2, ph: r() * 6.28, k: .6 + r() * .5, lean: (r() - .5) * .3,
+      col: hsl(80 + (r() - .5) * 34, 40 + (r() - .5) * 20, 34 + r() * 26, .9),
+      flower: fl < .09 ? hsl(52, 90, 66) : fl < .12 ? hsl(0, 0, 96) : fl < .13 ? hsl(355, 70, 58) : null });
+  }
+  grass.sort((a, b) => a.y - b.y);
+  r = rng(404);
+  for (let i = 0; i < 16; i++) {
+    const s = []; for (let j = 0; j < 16; j++) s.push({ s: .15 + r() * .82, t: r(), len: 6 + r() * 9, w: 2.5 + r() * 2.5, dl: (r() - .5) * 18, dh: (r() - .5) * 16 });
+    gores.push(s);
+  }
+})();
+
+// ------------------------------------------------------------------ waveform / wind state
+const NW = 48;
+const waveSm = new Float32Array(NW), waveRaw = new Float32Array(NW);
+function waveAt(u) { const f = clamp(u, 0, 1) * (NW - 1), i = f | 0, j = Math.min(NW - 1, i + 1), t = f - i; return waveSm[i] * (1 - t) + waveSm[j] * t; }
+
+let actx = null, analyser = null, abuf = null, micOn = false, floorRms = .01, calib = 0, sens = 1;
+let holding = false, holdS = 0;
+let wind = 0, playerWind = 0, maxWind = 0;
+const sp = { b: 0, bv: 0, phi: -.32, phiv: 0, c: 1, cv: 0, rs: 1, veil: 0 };
+let inverted = false, flipT = 0, calmT = 0, flyT = 0;
+let fly = null; // {x,y,vx,vy,rot,vr,t,phase}
+let spin = 0, hemLift = 0;
+let tNow = 0;
+
+async function startMic() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  actx = new AC();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  const src = actx.createMediaStreamSource(stream);
+  analyser = actx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0;
+  src.connect(analyser);
+  abuf = new Float32Array(analyser.fftSize);
+  if (actx.state !== 'running') await actx.resume();
+  micOn = true; calib = .7; floorRms = 0;
+}
+
+function readInput(dt) {
+  let target = 0, haveWave = false;
+  if (micOn && analyser) {
+    analyser.getFloatTimeDomainData(abuf);
+    let s = 0; for (let i = 0; i < abuf.length; i++) s += abuf[i] * abuf[i];
+    const rms = Math.sqrt(s / abuf.length);
+    if (calib > 0) { calib -= dt; floorRms = Math.max(floorRms, rms); }
+    else {
+      if (rms < floorRms) floorRms = lerp(floorRms, rms, .05);
+      floorRms = Math.max(floorRms, .002);
+      target = clamp((rms - floorRms * 1.6) * sens * 6, 0, 1.25);
+    }
+    const step = abuf.length / NW;
+    let peak = 1e-4;
+    for (let i = 0; i < NW; i++) { const k = (i * step) | 0; const v = (abuf[k] + abuf[k + 1] + abuf[k + 2]) / 3; waveRaw[i] = v; peak = Math.max(peak, Math.abs(v)); }
+    for (let i = 0; i < NW; i++) waveRaw[i] /= peak;
+    haveWave = true;
+  }
+  holdS = holding ? Math.min(1.05, holdS + dt * .75) : Math.max(0, holdS - dt * 2.5);
+  if (holdS > 0) {
+    const hs = holdS * (.88 + .12 * Math.sin(tNow * 23) * Math.sin(tNow * 7.3));
+    if (hs > target) {
+      target = hs;
+      if (!haveWave || holdS > .2) { let a = 0; for (let i = 0; i < NW; i++) { a = a * .4 + (Math.random() * 2 - 1) * .6; waveRaw[i] = a * 1.6; } haveWave = true; }
+    }
+  }
+  if (!haveWave) waveRaw.fill(0);
+  // player wind: fast attack, slow release
+  const k = target > playerWind ? 16 : 2.6;
+  playerWind += (target - playerWind) * (1 - Math.exp(-dt * k));
+  // a gentle idle breeze keeps the painting alive
+  const idle = .07 + .04 * Math.sin(tNow * .7) + .02 * Math.sin(tNow * 2.3);
+  wind = Math.max(playerWind, idle);
+  // waveform -> fabric: amplitude follows wind, smooth in space & time
+  const amp = Math.min(1, playerWind * 1.4);
+  const tmp = new Float32Array(NW);
+  for (let i = 0; i < NW; i++) {
+    const a = waveRaw[Math.max(0, i - 1)], b = waveRaw[i], c = waveRaw[Math.min(NW - 1, i + 1)];
+    const idleW = Math.sin(tNow * 2.2 + i * .35) * .18;
+    tmp[i] = ((a + 2 * b + c) / 4) * amp + idleW * (1 - amp);
+  }
+  const kt = 1 - Math.exp(-dt * 22);
+  for (let i = 0; i < NW; i++) waveSm[i] += (tmp[i] - waveSm[i]) * kt;
+}
+
+// ------------------------------------------------------------------ game state
+const MISSIONS = [
+  { id: 'grass', label: '草がそよぐ', msg: '草がそよいだ' },
+  { id: 'veil', label: 'ヴェールがなびく', msg: 'ヴェールがなびいた' },
+  { id: 'skirt', label: 'スカートがめくれる', msg: 'スカートがふわり！' },
+  { id: 'flip', label: '日傘がおちょこになる', msg: '日傘がおちょこに！' },
+  { id: 'fly', label: '日傘が飛んでいく', msg: '日傘が飛んでった！' },
+];
+const done = {};
+let startT = null, clearT = null, gameOn = false, cleared = false, clearShown = false;
+const elM = document.getElementById('missions');
+function renderMissions() {
+  elM.innerHTML = MISSIONS.map(m => `<div class="m${done[m.id] ? ' done' : ''}"><span class="b">${done[m.id] ? '✿' : '・'}</span>${m.label}</div>`).join('') +
+    `<div id="timer"></div>`;
+}
+function resetGame() {
+  for (const m of MISSIONS) done[m.id] = false;
+  startT = null; clearT = null; cleared = false; clearShown = false; maxWind = 0;
+  inverted = false; fly = null; flipT = calmT = flyT = 0;
+  renderMissions();
+}
+const elMsg = document.getElementById('msg');
+function say(t) { elMsg.textContent = t; elMsg.classList.remove('show'); void elMsg.offsetWidth; elMsg.classList.add('show'); }
+function complete(id) {
+  if (done[id] || !gameOn) return;
+  done[id] = true; say(MISSIONS.find(m => m.id === id).msg); renderMissions();
+  if (MISSIONS.every(m => done[m.id])) { cleared = true; clearT = (performance.now() - startT) / 1000; }
+}
+
+// ------------------------------------------------------------------ simulation
+function simulate(dt) {
+  tNow += dt;
+  readInput(dt);
+  if (gameOn && startT === null && playerWind > .12) startT = performance.now();
+  if (gameOn) maxWind = Math.max(maxWind, playerWind);
+
+  // skirt billow spring
+  const bt = wind * 1.12;
+  sp.bv += (62 * (bt - sp.b) - 7.5 * sp.bv) * dt; sp.b += sp.bv * dt;
+  hemLift = 150 * Math.pow(Math.max(sp.b, 0), 1.5);
+  sp.veil += (clamp(wind * 1.6, 0, 1.2) - sp.veil) * (1 - Math.exp(-dt * 5));
+
+  // parasol
+  if (!fly) {
+    if (wind > .58) flipT += dt; else flipT = Math.max(0, flipT - dt * 1.5);
+    if (!inverted && flipT > .45) { inverted = true; flipT = 0; calmT = 0; flyT = 0; complete('flip'); if (!gameOn || done.flip) {} }
+    if (inverted) {
+      if (wind < .16) calmT += dt; else calmT = 0;
+      if (calmT > 2.6) { inverted = false; calmT = 0; if (gameOn) say('ぽん、と戻った'); }
+      if (wind > .8) flyT += dt; else flyT = Math.max(0, flyT - dt * .8);
+      if (flyT > 1.0) { fly = { x: 0, y: 0, vx: 180, vy: -260, rot: 0, vr: 2.5, t: 0, phase: 0 }; complete('fly'); if (!gameOn) say('日傘が飛んでった！'); }
+    }
+  }
+  const phiT = -.32 + wind * .42 + (inverted ? .22 : 0);
+  sp.phiv += (26 * (phiT - sp.phi) - 4 * sp.phiv) * dt; sp.phi += sp.phiv * dt;
+  sp.phi += waveAt(.5) * .004;
+  const cT = inverted ? -.9 : 1 - Math.min(wind, 1) * .5;
+  sp.cv += (140 * (cT - sp.c) - 9 * sp.cv) * dt; sp.c += sp.cv * dt;
+  sp.rs += ((inverted ? 1.1 : 1) - sp.rs) * (1 - Math.exp(-dt * 8));
+
+  if (fly) {
+    fly.t += dt;
+    if (fly.phase === 0) {
+      fly.vx += (wind * 260 + 40) * dt; fly.vy += (-30 - wind * 120) * dt;
+      fly.x += fly.vx * dt; fly.y += fly.vy * dt; fly.rot += fly.vr * dt; spin += dt * 6;
+      if (fly.t > 3.4) { fly.phase = 1; fly.t = 0; inverted = false; sp.c = 1; sp.cv = 0; }
+    } else {
+      const e = Math.min(1, fly.t / 1.3), ee = 1 - Math.pow(1 - e, 3);
+      fly.x = lerp(-420, 0, ee); fly.y = lerp(-650, 0, ee) - Math.sin(e * Math.PI) * 60;
+      fly.rot = (1 - ee) * -2.4; spin = (1 - ee) * 3;
+      if (e >= 1) { fly = null; spin = 0; if (gameOn) say('……ふわりと戻ってきた'); }
+    }
+  }
+  for (const c of clouds) {
+    c.x += (5 + wind * 110) * c.k * dt;
+    if (c.x > W + 30) c.x = -c.w - 30;
+  }
+  // missions
+  if (gameOn) {
+    if (playerWind > .15) complete('grass');
+    if (playerWind > .32) complete('veil');
+    if (hemLift > 82 && playerWind > .3) complete('skirt');
+  }
+}
+
+// ------------------------------------------------------------------ drawing
+const P = { x: 0, y: 0 }, Q = { x: 0, y: 0 };
+function skirtPt(u, v, cfg, b, o) {
+  const half = cfg.wh + (cfg.hh - cfg.wh) * (1 - Math.pow(1 - v, 1.7));
+  let x = cfg.wx + (u * 2 - 1) * half;
+  let y = cfg.wy + v * (cfg.hy - cfg.wy) + Math.pow(v, 4) * 10 * Math.sin(Math.PI * u);
+  const bs = b * cfg.sway;
+  x += bs * 85 * Math.pow(v, 1.4) * (.3 + .7 * u) + bs * 22 * v * (1 - u);
+  const lift = cfg.lift * 150 * Math.pow(Math.max(b, 0), 1.5) * Math.pow(v, 2.2) * sst(.25, 1, u);
+  y -= lift; x += lift * .35 * u;
+  const fl = Math.pow(v, 3) * (.35 + Math.min(Math.abs(b), 1.2));
+  y += waveAt(u) * 16 * fl; x += waveAt((u + .37) % 1) * 9 * fl;
+  o.x = x; o.y = y;
+}
+function skirtOutline(g, cfg, b) {
+  g.beginPath();
+  skirtPt(0, 0, cfg, b, P); g.moveTo(P.x, P.y);
+  for (let i = 1; i <= 12; i++) { skirtPt(0, i / 12, cfg, b, P); g.lineTo(P.x, P.y); }
+  for (let i = 1; i <= 28; i++) { skirtPt(i / 28, 1, cfg, b, P); g.lineTo(P.x, P.y); }
+  for (let i = 11; i >= 0; i--) { skirtPt(1, i / 12, cfg, b, P); g.lineTo(P.x, P.y); }
+  g.closePath();
+}
+
+function drawWoman(g) {
+  const b = sp.b;
+  // legs / boots (only seen when the hems lift)
+  g.strokeStyle = hsl(230, 20, 22); g.lineWidth = 8;
+  g.beginPath(); g.moveTo(320, 590); g.lineTo(318, 700); g.moveTo(342, 590); g.lineTo(346, 700); g.stroke();
+  g.fillStyle = hsl(25, 30, 18); g.beginPath(); g.ellipse(316, 702, 8, 4, 0, 0, 7); g.ellipse(349, 702, 8, 4, 0, 0, 7); g.fill();
+  // petticoat
+  skirtOutline(g, PT, b); g.fillStyle = hsl(45, 25, 93); g.fill();
+  for (const s of ptStrokes) {
+    skirtPt(s.u, s.v, PT, b, P); skirtPt(s.u, Math.min(1, s.v + .03), PT, b, Q);
+    dab(g, P.x, P.y, Math.atan2(Q.y - P.y, Q.x - P.x), s.len, s.w, s.col);
+  }
+  g.fillStyle = hsl(45, 20, 97);
+  for (let i = 0; i <= 30; i++) { skirtPt(i / 30, 1, PT, b, P); g.beginPath(); g.arc(P.x, P.y, 3.2, 0, 7); g.fill(); }
+  // skirt
+  skirtOutline(g, SK, b);
+  const gr = g.createLinearGradient(200, 0, 460, 0);
+  gr.addColorStop(0, hsl(225, 24, 76)); gr.addColorStop(.7, hsl(222, 20, 86)); gr.addColorStop(1, hsl(45, 40, 92));
+  g.fillStyle = gr; g.fill();
+  for (const s of skStrokes) {
+    skirtPt(s.u, s.v, SK, b, P); skirtPt(s.u, Math.min(1, s.v + .025), SK, b, Q);
+    dab(g, P.x, P.y, Math.atan2(Q.y - P.y, Q.x - P.x), s.len, s.w, s.col);
+  }
+  // hem edge in shadow
+  g.strokeStyle = hsl(230, 22, 62, .6); g.lineWidth = 2.5; g.beginPath();
+  for (let i = 0; i <= 28; i++) { skirtPt(i / 28, 1, SK, b, P); i ? g.lineTo(P.x, P.y) : g.moveTo(P.x, P.y); } g.stroke();
+  // body
+  g.drawImage(bodyL.c, 0, 0, W, H);
+  // veil streaming from the hat
+  const L = 36 + sp.veil * 120, droop = (1 - Math.min(1, sp.veil)) * 55;
+  for (let layer = 0; layer < 3; layer++) {
+    g.beginPath();
+    for (let j = 0; j <= 14; j++) {
+      const s = j / 14;
+      const x = 344 + s * L + layer * 4;
+      const y = 262 + s * 22 + s * s * droop + Math.sin(tNow * (5 + wind * 8) + s * 5 + layer) * s * 6 * (.3 + wind) + waveAt(s) * s * 18 + layer * 5;
+      j ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.strokeStyle = layer === 1 ? hsl(90, 25, 80, .45) : hsl(230, 30, 92, .5);
+    g.lineWidth = 9 - layer * 2; g.stroke();
+  }
+}
+
+function drawParasol(g) {
+  let ox = 0, oy = 0, rot = 0;
+  if (fly) { ox = fly.x; oy = fly.y; rot = fly.rot; }
+  const phi = sp.phi + rot;
+  const ax = Math.sin(phi), ay = -Math.cos(phi), px = Math.cos(phi), py = Math.sin(phi);
+  const Hx = HAND.x + ox, Hy = HAND.y + oy;
+  const Ax = Hx + ax * 205, Ay = Hy + ay * 205;
+  const c = sp.c, R = 146 * sp.rs, h = 58, k = .32;
+  const Cx = Ax - ax * h * c, Cy = Ay - ay * h * c;
+  const NG = 16, rim = [], ctl = [];
+  const wa = Math.min(1, playerWind * 1.3) * .09 + .015;
+  for (let i = 0; i <= NG; i++) {
+    const th = i / NG * Math.PI * 2 + spin, rr = R * (1 + waveAt((i % NG) / NG) * wa);
+    const co = Math.cos(th), si = Math.sin(th);
+    const x = Cx + px * rr * co + ax * k * rr * si, y = Cy + py * rr * co + ay * k * rr * si;
+    rim.push({ x, y, th });
+    ctl.push({ x: x + (Ax - Cx) * .85, y: y + (Ay - Cy) * .85 });
+  }
+  const order = []; for (let i = 0; i < NG; i++) order.push(i);
+  order.sort((a, b2) => Math.sin(rim[a].th + Math.PI / NG) - Math.sin(rim[b2].th + Math.PI / NG));
+  const bez = (i, s, o) => { const u = 1 - s; o.x = u * u * Ax + 2 * u * s * ctl[i].x + s * s * rim[i].x; o.y = u * u * Ay + 2 * u * s * ctl[i].y + s * s * rim[i].y; };
+  const B1 = { x: 0, y: 0 }, B2 = { x: 0, y: 0 }, B3 = { x: 0, y: 0 };
+  const drawShaft = () => {
+    g.strokeStyle = hsl(30, 30, 30); g.lineWidth = 2.6; g.beginPath();
+    g.moveTo(Hx - ax * 34, Hy - ay * 34); g.lineTo(Ax + ax * 14 * Math.sign(c || 1), Ay + ay * 14 * Math.sign(c || 1)); g.stroke();
+    g.lineWidth = 3.5; g.beginPath(); g.arc(Hx - ax * 34 + px * 5, Hy - ay * 34 + py * 5, 5, phi, phi + Math.PI); g.stroke();
+  };
+  let shaftDone = false;
+  for (const i of order) {
+    const a = rim[i], b = rim[i + 1];
+    const cross = (a.x - Ax) * (b.y - Ay) - (a.y - Ay) * (b.x - Ax);
+    const interior = (cross < 0) === (c > 0);
+    const near = Math.sin(a.th + Math.PI / NG) > 0;
+    if (near && !shaftDone) { drawShaft(); shaftDone = true; }
+    const light = .5 + .5 * Math.cos(a.th + Math.PI / NG + .6);
+    const alt = (i % 2) ? 3 : -2;
+    const base = interior ? [168, 22, 27 + light * 12 + alt] : [96, 36, 36 + light * 24 + alt];
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    g.beginPath(); g.moveTo(Ax, Ay);
+    g.quadraticCurveTo(ctl[i].x, ctl[i].y, a.x, a.y);
+    g.quadraticCurveTo(mx + (Cx - mx) * .07, my + (Cy - my) * .07, b.x, b.y);
+    g.quadraticCurveTo(ctl[i + 1].x, ctl[i + 1].y, Ax, Ay);
+    g.fillStyle = hsl(base[0], base[1], base[2]); g.fill();
+    for (const s of gores[i]) {
+      bez(i, s.s, B1); bez(i + 1, s.s, B2);
+      const x = lerp(B1.x, B2.x, s.t), y = lerp(B1.y, B2.y, s.t);
+      bez(i, Math.min(1, s.s + .06), B3);
+      const ang = Math.atan2(B3.y - B1.y, B3.x - B1.x);
+      let col;
+      if (interior) col = s.dl > 6 ? hsl(70, 45, 52 + light * 10, .55) : hsl(base[0] + s.dh, base[1], base[2] + s.dl * .6, .75);
+      else col = s.dl > 7 ? hsl(70, 55, 70, .7) : hsl(base[0] + s.dh, base[1] + 6, base[2] + s.dl, .78);
+      dab(g, x, y, ang, s.len, s.w, col);
+    }
+    // rib & rim line
+    g.strokeStyle = interior ? hsl(160, 25, 18, .7) : hsl(100, 30, 26, .55); g.lineWidth = interior ? 1.4 : 1;
+    g.beginPath(); g.moveTo(Ax, Ay); g.quadraticCurveTo(ctl[i].x, ctl[i].y, a.x, a.y);
+    g.quadraticCurveTo(mx + (Cx - mx) * .07, my + (Cy - my) * .07, b.x, b.y); g.stroke();
+  }
+  if (!shaftDone) drawShaft();
+  if (!fly) { g.fillStyle = hsl(25, 40, 72); g.beginPath(); g.ellipse(HAND.x, HAND.y, 6, 7, phi, 0, 7); g.fill(); }
+}
+
+function drawGrass(g) {
+  const sw = 1.5 + wind * 7;
+  for (const s of grass) {
+    const sway = wind * .95 * s.k + Math.sin(tNow * sw + s.ph + s.x * .02) * (.06 + wind * .16) + waveAt(s.x / W) * playerWind * .35;
+    const ang = -1.5708 + s.lean + sway;
+    const tx = s.x + Math.cos(ang) * s.len, ty = s.y + Math.sin(ang) * s.len;
+    const ca = -1.5708 + s.lean + sway * .35;
+    const cx = s.x + Math.cos(ca) * s.len * .55, cy = s.y + Math.sin(ca) * s.len * .55;
+    g.strokeStyle = s.col; g.lineWidth = s.w;
+    g.beginPath(); g.moveTo(s.x, s.y); g.quadraticCurveTo(cx, cy, tx, ty); g.stroke();
+    if (s.flower) { g.fillStyle = s.flower; g.beginPath(); g.arc(tx, ty, s.w * .9 + 1, 0, 7); g.fill(); }
+  }
+}
+
+function drawWave(g) {
+  g.strokeStyle = `rgba(255,255,255,${.25 + playerWind * .5})`; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < NW; i++) { const x = 20 + i / (NW - 1) * (W - 40), y = 775 + waveSm[i] * 16; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.stroke();
+}
+
+function draw() {
+  const g = ctx;
+  g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.drawImage(skyL.c, 0, 0, W, H);
+  for (const c of clouds) g.drawImage(c.img, c.x, c.y, c.w, c.h);
+  g.drawImage(landL.c, 0, 0, W, H);
+  drawWoman(g);
+  drawGrass(g);
+  drawParasol(g);
+  drawWave(g);
+  g.drawImage(texL.c, 0, 0, W, H);
+}
+
+// ------------------------------------------------------------------ HUD
+const elFill = document.getElementById('fill'), elPeak = document.getElementById('peak'), elMs = document.getElementById('ms'),
+  elBf = document.getElementById('bf'), elHint = document.getElementById('hint'), elMode = document.getElementById('mode');
+const BF = [[.3, '静穏'], [1.6, '至軽風'], [3.4, '軽風'], [5.5, '軟風'], [8, '和風'], [10.8, '疾風'], [13.9, '雄風'], [17.2, '強風'], [20.8, '疾強風'], [99, '暴風']];
+let hudT = 0;
+function updateHud(dt) {
+  hudT += dt; if (hudT < .05) return; hudT = 0;
+  const ms = playerWind * 22;
+  elFill.style.height = clamp(playerWind / 1.2, 0, 1) * 100 + '%';
+  elPeak.style.bottom = clamp(maxWind / 1.2, 0, 1) * 100 + '%';
+  elMs.innerHTML = ms.toFixed(1) + '<small>m/s</small>';
+  elBf.textContent = BF.find(b => ms < b[0])[1];
+  const tm = document.getElementById('timer');
+  if (tm) tm.textContent = !gameOn ? '' : cleared ? `クリア ${clearT.toFixed(1)}秒` : startT ? `${((performance.now() - startT) / 1000).toFixed(1)}秒` : '';
+  let hint = '';
+  if (gameOn && !cleared) {
+    if (micOn && calib > 0) hint = '周りの音をはかっています…';
+    else if (!done.grass) hint = micOn ? 'マイクに「ふーっ」と息を吹きかけて！' : '画面を長押し（またはスペースキー）で風が吹く';
+    else if (!done.skirt) hint = 'もっと強く、長く吹いて！';
+    else if (!done.flip) hint = '強い風を続けると、日傘が…？';
+    else if (!done.fly && inverted) hint = 'いまだ！おちょこの日傘に全力で！';
+    else if (!done.fly) hint = 'もう一度、日傘をおちょこに！';
+  }
+  elHint.textContent = hint;
+  elHint.style.opacity = hint ? 1 : 0;
+  if (cleared && !clearShown && !fly) {
+    clearShown = true;
+    setTimeout(() => {
+      document.getElementById('rTime').textContent = clearT.toFixed(1);
+      document.getElementById('rWind').textContent = (maxWind * 22).toFixed(1);
+      document.getElementById('clear').classList.remove('hidden');
+    }, 900);
+  }
+}
+
+// ------------------------------------------------------------------ layout & loop
+function layout() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const pad = Math.min(vw, vh) < 500 ? 16 : 44;
+  scale = Math.min((vw - pad) / W, (vh - pad) / H);
+  const fs = scale * 16;
+  document.getElementById('frame').style.fontSize = fs + 'px';
+  const pw = Math.round(W * scale), ph = Math.round(H * scale);
+  scale = pw / W;
+  const wrap = document.getElementById('wrap');
+  wrap.style.width = pw + 'px'; wrap.style.height = ph + 'px';
+  cv.style.width = pw + 'px'; cv.style.height = ph + 'px';
+  cv.width = Math.round(pw * dpr); cv.height = Math.round(ph * dpr);
+  paintSky(); paintClouds(); paintLand(); paintBody(); paintTexture();
+}
+let rzT = 0;
+window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(layout, 120); });
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  simulate(dt); draw(); updateHud(dt);
+  requestAnimationFrame(frame);
+}
+
+// ------------------------------------------------------------------ input & UI
+const wrapEl = document.getElementById('wrap');
+const isUi = e => e.target.closest && e.target.closest('button,input,label,.card');
+wrapEl.addEventListener('pointerdown', e => { if (isUi(e)) return; holding = true; e.preventDefault(); });
+window.addEventListener('pointerup', () => holding = false);
+window.addEventListener('pointercancel', () => holding = false);
+window.addEventListener('blur', () => holding = false);
+window.addEventListener('keydown', e => { if (e.code === 'Space') { holding = true; e.preventDefault(); } });
+window.addEventListener('keyup', e => { if (e.code === 'Space') holding = false; });
+window.addEventListener('contextmenu', e => e.preventDefault());
+document.getElementById('sens').addEventListener('input', e => sens = +e.target.value);
+
+function begin(mode) {
+  document.getElementById('start').classList.add('hidden');
+  elMode.textContent = mode === 'mic' ? '🎤 マイク' : '🖱 長押し';
+  resetGame(); gameOn = true;
+}
+document.getElementById('bMic').addEventListener('click', async () => {
+  const err = document.getElementById('err');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { err.textContent = 'このブラウザではマイクが使えません。長押しで遊んでください。'; return; }
+  try { err.textContent = 'マイクの許可を待っています…'; await startMic(); err.textContent = ''; begin('mic'); }
+  catch (e) { err.textContent = 'マイクが使えませんでした（' + (e.name || 'エラー') + '）。長押しで遊べます。'; }
+});
+document.getElementById('bHold').addEventListener('click', () => begin('hold'));
+document.getElementById('bAgain').addEventListener('click', () => { document.getElementById('clear').classList.add('hidden'); resetGame(); });
+document.getElementById('bFree').addEventListener('click', () => { document.getElementById('clear').classList.add('hidden'); gameOn = false; elHint.style.opacity = 0; });
+document.getElementById('bShare').addEventListener('click', () => {
+  const text = `息を吹きかけて、モネの日傘を飛ばした！ クリア ${clearT.toFixed(1)}秒／最大風速 ${(maxWind * 22).toFixed(1)}m/s #風の日傘`;
+  const url = location.href.split('#')[0];
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank', 'noopener');
+});
+
+resetGame();
+layout();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
